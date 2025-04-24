@@ -1,0 +1,69 @@
+declare @StartDate as datetime =NULL
+declare @endDate as Datetime =NULL
+declare @StrDate as varchar(20) =NULL
+if convert(time(0),getdate()) >= '06:00:00' and  convert(time(0),getdate()) <= '07:02:00'
+begin
+	Set @StartDate =cast(concat(dateadd(day,-1,convert(Date,getdate())),' ','07:00:00') as datetime)
+	set @endDate =  cast(concat(convert(Date,getdate()),' ','07:00:00') as datetime)
+end
+else
+begin
+	Set @StartDate = cast(concat(dateadd(day,0,convert(Date,getdate())),' ','07:00:00') as datetime)
+	Set @endDate =  cast(concat(convert(Date,getdate()),' ','23:59:59') as datetime)
+end
+select distinct  osl.dsn Mfg_SrNo,osl.Serial_No,ol.Model_Code,col.Colour_Batch, ap.Attribute_Desc Attribute,ap.Attribute_ID,apeng.Attribute_Desc Engine,osl.Action_Status,
+ISNULL(ol.VIN_Number,'') VIN_Number , mm.Model_Description,
+case when osl.Action_Status='Trim In' then osl.TrimIn_Date else osl.Updated_Date end as Updated_Date,
+tcfshop.Shop_Name as 'Trim Line' ,bwshop.Shop_Name as 'Body Line', 
+isnull( orel.Remark,mm.auto_remarks) Remark,mm.BIW_Part_No 'Variant Code',ol.Order_No, series.Attribute_Desc Series, seat.Attribute_Desc Seat,
+sts.Sort_ORder , sts.Status,MCONT.ATTRIBUTE_DESC 'Country'
+from
+MM_OM_Order_Status_Live osl inner join MM_OM_Order_List ol on osl.Serial_No = ol.Serial_No 
+inner join MM_Model_Master mm  on ol.Model_Code = mm.Model_Code 
+inner join MM_Status sts on osl.Action_Status = sts.Status 
+inner join MM_OM_OrderRelease orel on ol.Order_No = orel.Order_No 
+inner join MM_Colour col on orel.Model_Color = col.Colour_ID  
+left join mm_shops tcfshop on mm.Assembly_Line = tcfshop.Shop_ID 
+left join mm_shops bwshop on ol.Shop_ID =bwshop.Shop_ID  
+cross join MM_Attribution_Parameters ap,MM_Attribution_Parameters apEng,MM_Attribution_Parameters Series,MM_Attribution_Parameters seat,MM_Attribution_Parameters MCONT
+where 
+(ap.Attribute_ID = CASE WHEN JSON_VALUE(JSON_QUERY(mm.Attribution_Parameters), '$[8].Value') = '' THEN 0 ELSE JSON_VALUE(JSON_QUERY(mm.Attribution_Parameters), '$[8].Value') END) AND
+(apEng.Attribute_ID = CASE WHEN JSON_VALUE(JSON_QUERY(mm.Attribution_Parameters), '$[8].Value') = '' THEN 0 ELSE JSON_VALUE(JSON_QUERY(mm.Attribution_Parameters), '$[8].Value') END) and  
+(Series.Attribute_ID = CASE WHEN JSON_VALUE(JSON_QUERY(mm.Attribution_Parameters), '$[4].Value') = '' THEN 0 ELSE JSON_VALUE(JSON_QUERY(mm.Attribution_Parameters), '$[4].Value') END) and  
+(seat.Attribute_ID = CASE WHEN JSON_VALUE(JSON_QUERY(mm.Attribution_Parameters), '$[7].Value') = '' THEN 0 ELSE JSON_VALUE(JSON_QUERY(mm.Attribution_Parameters), '$[7].Value') END)  AND
+(MCONT.Attribute_ID = CASE WHEN JSON_VALUE(JSON_QUERY(MM.Attribution_Parameters),'$[11].Value') = '' THEN 1190 when orel.Order_No like '%NP%' then orel.Country_ID ELSE JSON_VALUE(JSON_QUERY(MM.ATTRIBUTION_PARAMETERS),'$[11].Value') END) 
+and mm.Assembly_Line=13 and osl.Shop_ID!=16 
+and sts.Sort_Order < 31 
+and case when osl.Action_Status='Trim In' then osl.TrimIn_Date else osl.Updated_Date end > '2024-03-31'
+group by 
+osl.dsn,osl.Serial_No,ol.Model_Code,col.Colour_Batch, ap.Attribute_Desc,ap.Attribute_ID,apeng.Attribute_Desc,osl.Action_Status,
+ISNULL(ol.VIN_Number,''), mm.Model_Description,case when Action_Status='Trim In' then osl.TrimIn_Date else osl.Updated_Date end, tcfshop.Shop_Name ,bwshop.Shop_Name, 
+isnull( orel.Remark,mm.auto_remarks),mm.BIW_Part_No ,ol.Order_No, series.Attribute_Desc, seat.Attribute_Desc,sts.Sort_ORder , sts.Status, mcont.Attribute_Desc
+union all
+select   NULL ,ol.Serial_No,orel.Model_Code,col.Colour_Batch, ap.Attribute_Desc Attribute,ap.Attribute_ID,
+apeng.Attribute_Desc Engine,orel.order_status,
+ISNULL(ol.VIN_Number,'') VIN_Number , mm.Model_Description,coalesce(orel.Planned_date,orel.Inserted_Date),
+NULL ,NULL, 
+isnull( orel.Remark,mm.auto_remarks) Remark,mm.BIW_Part_No 'Variant Code',orel.Order_No, 
+series.Attribute_Desc Series, seat.Attribute_Desc Seat,
+NULL , NULL,MCONT.ATTRIBUTE_DESC 'Country'
+FROM           
+MM_OM_OrderRelease orel LEFT OUTER JOIN
+MM_Colour col ON orel.Model_Color = col.Colour_ID LEFT OUTER JOIN
+MM_Model_Master mm ON orel.Model_Code = mm.Model_Code LEFT OUTER JOIN
+MM_OM_Order_List ol ON orel.Order_No = ol.Order_No
+cross join MM_Attribution_Parameters ap,MM_Attribution_Parameters apEng,MM_Attribution_Parameters Series,
+MM_Attribution_Parameters seat,MM_Attribution_Parameters MCONT
+where 
+(ap.Attribute_ID = CASE WHEN JSON_VALUE(JSON_QUERY(mm.Attribution_Parameters), '$[8].Value') = '' THEN 0 ELSE JSON_VALUE(JSON_QUERY(mm.Attribution_Parameters), '$[8].Value') END) AND
+(apEng.Attribute_ID = CASE WHEN JSON_VALUE(JSON_QUERY(mm.Attribution_Parameters), '$[8].Value') = '' THEN 0 ELSE JSON_VALUE(JSON_QUERY(mm.Attribution_Parameters), '$[8].Value') END) and  
+(Series.Attribute_ID = CASE WHEN JSON_VALUE(JSON_QUERY(mm.Attribution_Parameters), '$[4].Value') = '' THEN 0 ELSE JSON_VALUE(JSON_QUERY(mm.Attribution_Parameters), '$[4].Value') END) and  
+(seat.Attribute_ID = CASE WHEN JSON_VALUE(JSON_QUERY(mm.Attribution_Parameters), '$[7].Value') = '' THEN 0 ELSE JSON_VALUE(JSON_QUERY(mm.Attribution_Parameters), '$[7].Value') END)  AND
+--(MCONT.Attribute_ID = CASE WHEN JSON_VALUE(JSON_QUERY(MM.Attribution_Parameters),'$[11].Value') = '' THEN 1190 ELSE JSON_VALUE(JSON_QUERY(MM.ATTRIBUTION_PARAMETERS),'$[11].Value') END) 
+(MCONT.Attribute_ID = CASE WHEN JSON_VALUE(JSON_QUERY(MM.Attribution_Parameters),'$[11].Value') = '' THEN 1190 when orel.Order_No like '%NP%' then orel.Country_ID ELSE JSON_VALUE(JSON_QUERY(MM.ATTRIBUTION_PARAMETERS),'$[11].Value') END) 
+and mm.Assembly_Line=13 --osl.Shop_ID=13
+and orel.Order_Status='Release'
+and coalesce(orel.Planned_date,orel.Inserted_Date) > '2024-03-31'
+group by orel.Order_No,ol.Serial_No,orel.Model_Code,col.Colour_Batch, ap.Attribute_Desc,ap.Attribute_ID,apeng.Attribute_Desc,orel.order_status,ISNULL(ol.VIN_Number,''), mm.Model_Description,coalesce(orel.Planned_date,orel.Inserted_Date), isnull( orel.Remark,mm.auto_remarks),mm.BIW_Part_No ,ol.Order_No, series.Attribute_Desc, seat.Attribute_Desc, mcont.Attribute_Desc
+--order by orel.Planned_Date desc
+order by sts.Sort_Order desc, sts.Status ,case when Action_Status='Trim In' then osl.TrimIn_Date else osl.Updated_Date end desc
