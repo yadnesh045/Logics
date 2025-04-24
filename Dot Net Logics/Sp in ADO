@@ -1,0 +1,35 @@
+public bool SpUpdateinAdo()
+{
+    bool result = false;
+    SqlConnection conn1 = new SqlConnection(connectionstringforvin);
+
+    try
+    {
+        conn1.Open();
+
+        using (SqlCommand cmd1 = new SqlCommand("YourStoredProcedureName", conn1))
+        {
+            cmd1.CommandType = CommandType.StoredProcedure;
+
+            cmd1.Parameters.AddWithValue("@Parameter1", value1);
+            cmd1.Parameters.AddWithValue("@Parameter2", value2);
+
+            cmd1.ExecuteNonQuery();
+        }
+
+        result = true;
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine("An error occurred: " + ex.Message);
+    }
+    finally
+    {
+        if (conn1.State == ConnectionState.Open)
+        {
+            conn1.Close();
+        }
+    }
+
+    return result;
+}
