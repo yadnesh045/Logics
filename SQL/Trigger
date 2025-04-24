@@ -1,0 +1,94 @@
+
+
+ALTER TRIGGER [dbo].[MM_OM_Order_Status_Live_Insert_TRIGGER]
+   ON  [dbo].[MM_OM_Order_Status_Live]
+   AFTER Insert
+AS 
+BEGIN
+    -- SET NOCOUNT ON added to prevent extra result sets from
+    -- interfering with SELECT statements.
+    SET NOCOUNT ON;
+    
+    Declare @plant_id decimal(18,0)
+    Declare @shop_id decimal(18,0)
+    Declare @line_id decimal(18,0)
+    Declare @station_id decimal(18,0)
+    Declare @Order_No nvarchar(15)
+    Declare @SerialNo nvarchar(100)
+    Declare @fromStatus nvarchar(50)
+    Declare @ActionStatus nvarchar(100)
+    Declare @remark nvarchar(200)
+    Declare @CarrierNo nvarchar(50)
+    Declare @SkidNo nvarchar(50)
+    Declare @HangerNo nvarchar(50)
+    Declare @barcode nvarchar(50)
+    Declare @paintshopId decimal(18,0)
+    Declare @entrydate datetime
+    Declare @Is_Transfered bit
+    Declare @Is_Purgeable bit
+    Declare @Is_Edited bit
+    Declare @Is_Deleted bit
+    Declare @InsertedHost nvarchar(100)
+    Declare @InsertedUserID decimal(18,0)
+    Declare @InsertedDate datetime
+    Declare @Updated_Host nvarchar(100)
+    Declare @UpdatedUserID decimal(18,0)
+    Declare @Updated_Date datetime
+    Declare @Is_Rejected bit
+    Declare @Param1 nvarchar(100)
+    Declare @Param2 nvarchar(100)
+    Declare @Param3 nvarchar(100)
+    Declare @Param4 nvarchar(100)
+    Declare @Param5 nvarchar(100)
+	Declare @ParentSerialNo nvarchar(100)
+	Declare @Shift_Id int
+
+
+ 
+
+    
+    SELECT @plant_id = INSERTED.Plant_ID from inserted;
+    SELECT @shop_id = INSERTED.Shop_ID from inserted;
+    SELECT @line_id = INSERTED.Line_ID from inserted;
+    SELECT @station_id = INSERTED.Station_ID from inserted;
+    SELECT @Order_No = INSERTED.Order_No from inserted;
+    SELECT @SerialNo = INSERTED.Serial_No from inserted;
+    SELECT @ActionStatus = INSERTED.Action_Status from inserted;
+    SELECT @remark = INSERTED.Remark from inserted;
+    SELECT @CarrierNo = INSERTED.Carrier_No from inserted;
+    --SELECT @SkidNo = INSERTED.Skid_No from inserted;
+    --SELECT @HangerNo = INSERTED.Hanger_No from inserted;
+    SELECT @barcode = INSERTED.Barcode from inserted;
+    SELECT @paintshopId = INSERTED.Paint_Shop_ID from inserted;
+    SELECT @entrydate = INSERTED.Entry_Date from inserted;
+    SELECT @Is_Transfered = INSERTED.Is_Transfered from inserted;
+    SELECT @Is_Purgeable = INSERTED.Is_Purgeable from inserted;
+    SELECT @Is_Edited = INSERTED.Is_Edited from inserted;
+    SELECT @Is_Deleted = INSERTED.Is_Deleted from inserted;
+    SELECT @InsertedHost = INSERTED.Inserted_Host from inserted;
+    SELECT @InsertedUserID = INSERTED.Inserted_User_ID from inserted;
+    SELECT @InsertedDate = INSERTED.Inserted_Date from inserted;
+    SELECT @Updated_Host = INSERTED.Updated_Host from inserted;
+    SELECT @UpdatedUserID = INSERTED.Updated_User_ID from inserted;
+    SELECT @Updated_Date = INSERTED.Updated_Date from inserted;
+    SELECT @Is_Rejected = INSERTED.Is_Rejected from inserted;
+    SELECT @Param1 = INSERTED.Param_1 from inserted;
+    SELECT @Param2 = INSERTED.Param_2 from inserted;
+    SELECT @Param3 = INSERTED.Param_3 from inserted;
+    SELECT @Param4 = INSERTED.Param_4 from inserted;
+    SELECT @Param5 = INSERTED.Param_5 from inserted;
+	SELECT @ParentSerialNo = INSERTED.Parent_Serial_No from inserted;
+	SELECT @Shift_Id  = INSERTED.SHIFT_ID FROM inserted;
+
+ 
+
+    INSERT INTO [dbo].[MM_OM_Order_Status_Log]  (Plant_ID,Shop_ID,Line_ID,Station_ID,Order_No,Serial_No,From_Status,Action_Status,
+    Remark,Carrier_No, Barcode,Paint_Shop_ID,Entry_Date,Is_Transfered,Is_Purgeable,Is_Edited,Is_Deleted,Inserted_Host,
+    Inserted_User_ID,Inserted_Date,Updated_Host,Updated_User_ID,Updated_Date,Is_Rejected,Param_1,Param_2,Param_3,Param_4,Param_5,Parent_Serial_No,shift_id)
+            values (@plant_id,@shop_id,@line_id,@station_id,@Order_No,@SerialNo,'Release',@ActionStatus,@remark,@CarrierNo, @barcode,
+            @paintshopId,@entrydate,@Is_Transfered,@Is_Purgeable,@Is_Edited,@Is_Deleted,@InsertedHost,@InsertedUserID,@InsertedDate,@Updated_Host,
+            @UpdatedUserID,@Updated_Date,@Is_Rejected,@Param1,@Param2,@Param3,@Param4,@Param5,@ParentSerialNo,@Shift_Id)	
+			
+	 	  
+    
+END
