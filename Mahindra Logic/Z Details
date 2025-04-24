@@ -1,0 +1,2912 @@
+using Mahindra_AD.Helper;
+using Mahindra_AD.Models;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Web.Mvc;
+using System.Data;
+using System.Data.Entity;
+using Mahindra_AD.Controllers.BaseManagement;
+using Newtonsoft.Json;
+using System.Globalization;
+using Microsoft.Reporting.WebForms;
+using System.IO;
+using System.Net;
+using Mahindra_AD.App_LocalResources;
+using System.Data.SqlClient;
+using System.Threading.Tasks;
+using System.Web.Script.Serialization;
+
+namespace Mahindra_AD.Controllers
+{
+
+
+    public class ZDetailsController : Controller
+    {
+
+        Utility.Utility objUtility = new Utility.Utility();
+        private DRONA_NGPEntities db = new DRONA_NGPEntities();
+
+        General generalHelper = new General();
+        GlobalData globalData = new GlobalData();
+        private readonly string connectionString = System.Configuration.ConfigurationManager.ConnectionStrings["AD"].ConnectionString;
+
+        // GET: ZDetails
+        public ActionResult Index()
+        {
+            if (TempData["globalData"] != null)
+            {
+                globalData = (GlobalData)TempData["globalData"];
+            }
+
+            globalData.pageTitle = "ZDetails";
+            globalData.subTitle = ResourceGlobal.Lists;
+            globalData.controllerName = "ZDetails";
+            globalData.actionName = ResourceGlobal.Lists;
+            var model = db.Z_Details1.ToList();
+
+            return View(model);
+        }
+
+        // GET: Concern/Create
+        public ActionResult Create()
+        {
+            int plantID = ((FDSession)this.Session["FDSession"]).plantId;
+
+            ViewBag.Shop_ID = new SelectList(db.MM_Shops.Where(s => s.Plant_ID == plantID), "Shop_ID", "Shop_Name");
+
+            globalData.pageTitle = "ZDetails";
+            globalData.subTitle = ResourceGlobal.Create;
+            globalData.controllerName = "ZDetails";
+            globalData.actionName = ResourceGlobal.Create;
+            return View();
+        }
+
+        // POST: Concern/Create
+        [HttpPost]
+        public ActionResult Create(Z_Details1 zDetails)
+        {
+            if (ModelState.IsValid)
+            {
+                using (SqlConnection conn = new SqlConnection(connectionString))
+                {
+                    using (SqlCommand cmd = new SqlCommand("Insert_ZDetails", conn))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.Parameters.AddWithValue("@Model", zDetails.Model);
+                        cmd.Parameters.AddWithValue("@Stage_No", zDetails.Stage_No);
+                        cmd.Parameters.AddWithValue("@Stage_Description", zDetails.Stage_Description);
+                        cmd.Parameters.AddWithValue("@Field_Concern_Details", zDetails.Field_Concern_Details);
+                        cmd.Parameters.AddWithValue("@Date_of_incidence", zDetails.Date_of_incidence);
+                        cmd.Parameters.AddWithValue("@Root_Cause", zDetails.Root_Cause);
+                        cmd.Parameters.AddWithValue("@Attribution", zDetails.Attribution);
+                        cmd.Parameters.AddWithValue("@Action_plan", zDetails.Action_plan);
+                        cmd.Parameters.AddWithValue("@Stage_Observations", zDetails.Stage_Observations);
+                        cmd.Parameters.AddWithValue("@Concern_Status", zDetails.Concern_Status);
+                        cmd.Parameters.AddWithValue("@Documents_or_8D", zDetails.Documents_or_8D);
+                        cmd.Parameters.AddWithValue("@Remark", zDetails.Remark);
+                        //cmd.Parameters.AddWithValue("@Shop_ID", zDetails.Shop_ID);
+
+                        try
+                        {
+                            conn.Open();
+                            cmd.ExecuteNonQuery();
+                            return Json(new { success = true });
+                        }
+                        catch (Exception ex)
+                        {
+                            return Json(new { success = false, message = ex.Message });
+                        }
+                    }
+                }
+
+            }
+
+            else
+            {
+                ModelState.AddModelError("", "A record with the same Shop_ID and Stage_No already exists.");
+            }
+            return RedirectToAction("Index");
+        }
+        // GET: Concern/Create
+
+
+        public ActionResult XuvShowAll()
+        {
+            if (TempData["globalData"] != null)
+            {
+                globalData = (GlobalData)TempData["globalData"];
+            }
+
+            globalData.pageTitle = "XUVZDetails";
+            globalData.subTitle = ResourceGlobal.Lists;
+            globalData.controllerName = "ZDetails";
+            globalData.actionName = ResourceGlobal.Lists;
+
+            List<Z_Details11> model = new List<Z_Details11>();
+
+
+
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                try
+                {
+                    conn.Open();
+                    string query = "SELECT * FROM Z_Details";
+
+                    using (SqlCommand cmd = new SqlCommand(query, conn))
+                    {
+                        using (SqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                Z_Details11 detail = new Z_Details11
+                                {
+                                    Sr = Convert.ToInt32(reader["Sr"]),
+                                    Stage_No = reader["Stage_No"] != DBNull.Value ? reader["Stage_No"].ToString() : null,
+                                    Model = reader["Model"] != DBNull.Value ? reader["Model"].ToString() : null,
+                                    Stage_Description = reader["Stage_Description"] != DBNull.Value ? reader["Stage_Description"].ToString() : null,
+                                    Field_Concern_Details = reader["Field_Concern_Details"] != DBNull.Value ? reader["Field_Concern_Details"].ToString() : null,
+                                    Date_of_incidence = reader["Date_of_incidence"] != DBNull.Value ? (DateTime?)Convert.ToDateTime(reader["Date_of_incidence"]) : null,
+                                    Root_Cause = reader["Root_Cause"] != DBNull.Value ? reader["Root_Cause"].ToString() : null,
+                                    Attribution = reader["Attribution"] != DBNull.Value ? reader["Attribution"].ToString() : null,
+                                    Action_plan = reader["Action_plan"] != DBNull.Value ? reader["Action_plan"].ToString() : null,
+                                    Stage_Observations = reader["Stage_Observations"] != DBNull.Value ? reader["Stage_Observations"].ToString() : null,
+                                    Concern_Status = reader["Concern_Status"] != DBNull.Value ? reader["Concern_Status"].ToString() : null,
+                                    Documents_or_8D = reader["pptupload"] != DBNull.Value ? reader["pptupload"].ToString() : null,
+                                    Remark = reader["Remark"] != DBNull.Value ? reader["Remark"].ToString() : null,
+                                    MGF = reader["MGF"] != DBNull.Value && (bool)reader["MGF"],
+                                    Part = reader["Part"] != DBNull.Value && (bool)reader["Part"],
+                                    Design = reader["Design"] != DBNull.Value && (bool)reader["Design"],
+                                    U_A = reader["U_A"] != DBNull.Value && (bool)reader["U_A"],
+                                    Phen_OCC = reader["Phen_OCC"] != DBNull.Value && (bool)reader["Phen_OCC"],
+                                    Z_Stage = reader["Z_Stage"] != DBNull.Value && (bool)reader["Z_Stage"],
+                                    WHF = reader["WHF"] != DBNull.Value && (bool)reader["WHF"],
+                                };
+
+
+                                model.Add(detail);
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Error: " + ex.Message);
+                }
+                finally
+                {
+                    conn.Close();
+                }
+            }
+
+            return View(model);
+        }
+
+
+
+
+
+        public ActionResult CreateXUV()
+        {
+            int plantID = ((FDSession)this.Session["FDSession"]).plantId;
+
+            ViewBag.Shop_ID = new SelectList(db.MM_Shops.Where(s => s.Plant_ID == plantID), "Shop_ID", "Shop_Name");
+
+            globalData.pageTitle = "ZDetails";
+            globalData.subTitle = ResourceGlobal.Create;
+            globalData.controllerName = "ZDetails";
+            globalData.actionName = ResourceGlobal.Create;
+            return View();
+        }
+
+
+
+        //[HttpPost]
+        //public ActionResult CreateXUV(ZDetailsSub zdetails, HttpPostedFileBase file)
+        //{
+
+        //    string id = Session["stageno"] as string;
+        //    string path = Server.MapPath("~/UploadedFiles/");
+
+
+        //    if (file != null && file.ContentLength > 0)
+        //    {
+        //        string filePath = Path.Combine(path, Path.GetFileName(file.FileName));
+        //        if (!Directory.Exists(path))
+        //        {
+        //            Directory.CreateDirectory(path);
+        //        }
+        //        file.SaveAs(filePath);
+        //        zdetails.Documents_or_8D = filePath;
+        //    }
+
+        //    string query = "INSERT INTO ZDetailssubTbl (Stage_No, Field_Concern_Details, Date_of_incidence, Root_Cause, Attribution, Action_plan, Stage_Observations, Concern_Status, Documents_or_8D, Remark,NC) " +
+        //       "VALUES (" +
+        //        (id != null ? "'" + id + "'" : "NULL") + ", " +
+        //       (zdetails.Field_Concern_Details != null ? "'" + zdetails.Field_Concern_Details + "'" : "NULL") + ", " +
+        //       (zdetails.Date_of_incidence.HasValue ? "'" + zdetails.Date_of_incidence.Value.ToString("yyyy-MM-dd") + "'" : "NULL") + ", " +
+        //       (zdetails.Root_Cause != null ? "'" + zdetails.Root_Cause + "'" : "NULL") + ", " +
+        //       (zdetails.Attribution != null ? "'" + zdetails.Attribution + "'" : "NULL") + ", " +
+        //       (zdetails.Action_plan != null ? "'" + zdetails.Action_plan + "'" : "NULL") + ", " +
+        //       (zdetails.Stage_Observations != null ? "'" + zdetails.Stage_Observations + "'" : "NULL") + ", " +
+        //       (zdetails.Concern_Status != null ? "'" + zdetails.Concern_Status + "'" : "NULL") + ", " +
+        //       (zdetails.Documents_or_8D != null ? "'" + zdetails.Documents_or_8D + "'" : "NULL") + ", " +
+        //       (zdetails.Remark != null ? "'" + zdetails.Remark + "'" : "NULL") + ")" +","+
+        //       (zdetails.NC != null ? "'" + zdetails.NC + "'" : "NULL") + ")";
+
+
+        //    using (SqlConnection conn = new SqlConnection(connectionString))
+        //    {
+        //        using (SqlCommand cmd = new SqlCommand(query, conn))
+        //        {
+        //            try
+        //            {
+        //                conn.Open();
+        //                cmd.ExecuteNonQuery();
+
+        //                ViewBag.Title = "XUV_ZDetails";
+        //                return RedirectToAction("XuvIndependentView", "ZDetails", new { id = id });
+        //            }
+        //            catch (Exception ex)
+        //            {
+        //                return Json(new { success = false, message = ex.Message });
+        //            }
+        //        }
+        //    }
+        //}
+
+        //====================================================================================================================================================================
+        public static string ByteArrayToHexString(byte[] byteArray)
+        {
+            return BitConverter.ToString(byteArray).Replace("-", "");
+        }
+
+
+        [HttpPost]
+        public ActionResult CreateXUV(ZDetailsSub zdetails, HttpPostedFileBase file, HttpPostedFileBase file1, HttpPostedFileBase file2)
+        {
+            string id = Session["stageno"] as string;
+
+
+            string NcfDocumentHexString = null;
+            string DcpDocumentHexString = null;
+            string EightDDocBinHexString = null;
+            string NcfDocumentExtension = null;
+            string DcpDocumentExtension = null;
+            string EightDDocBinExtension = null;
+
+
+            if (file != null && file.ContentLength > 0)
+            {
+
+                NcfDocumentExtension = Path.GetExtension(file.FileName);
+                using (var binaryReader = new BinaryReader(file.InputStream))
+                {
+                    byte[] fileBytes = binaryReader.ReadBytes(file.ContentLength);
+                    NcfDocumentHexString = ByteArrayToHexString(fileBytes);
+                }
+            }
+
+
+            //===========================for file 1==============================
+
+            if (file1 != null && file1.ContentLength > 0)
+            {
+
+                DcpDocumentExtension = Path.GetExtension(file1.FileName);
+                using (var binaryReader = new BinaryReader(file1.InputStream))
+                {
+                    byte[] fileBytes = binaryReader.ReadBytes(file1.ContentLength);
+                    DcpDocumentHexString = ByteArrayToHexString(fileBytes);
+                }
+            }
+
+            //===========================for file 2==============================
+
+            if (file2 != null && file2.ContentLength > 0)
+            {
+
+                EightDDocBinExtension = Path.GetExtension(file2.FileName);
+                using (var binaryReader = new BinaryReader(file2.InputStream))
+                {
+                    byte[] fileBytes = binaryReader.ReadBytes(file2.ContentLength);
+                    EightDDocBinHexString = ByteArrayToHexString(fileBytes);
+                }
+            }
+
+
+            string query = null;
+
+            if (file != null || file1 != null || file2 != null)
+            {
+                query = "INSERT INTO ZDetailssubTbl (Stage_No, Field_Concern_Details, Date_of_incidence, Root_Cause, Attribution, Action_plan, Stage_Observations, Concern_Status, Remark, NC, NcfDocument, NcfExtension ,Process_Audit_Status,DcpDocument,DcpExtension,EightDDocBin,EightDDocBin_Extension, layred_Audit,model,type,shopid,MGF_Sub,MGF_Phenomena_Sub,MGF_Total_Vechicle_Sub,Part_Sub,Part_Phenomena_Sub,Part_Total_Vechicle_Sub,Design_Sub,Design_Phenomena_Sub,Design_Total_Vechicle_Sub,U_A_Sub,U_A_Phenomena_Sub,U_A_Total_Vechicle_Sub) " +
+                 "VALUES (" +
+                 (id != null ? "'" + id + "'" : "NULL") + ", " +
+                 (zdetails.Field_Concern_Details != null ? "'" + zdetails.Field_Concern_Details + "'" : "NULL") + ", " +
+                 (zdetails.Date_of_incidence.HasValue ? "'" + zdetails.Date_of_incidence.Value.ToString("yyyy-MM-dd") + "'" : "NULL") + ", " +
+                 (zdetails.Root_Cause != null ? "'" + zdetails.Root_Cause + "'" : "NULL") + ", " +
+                 (zdetails.Attribution != null ? "'" + zdetails.Attribution + "'" : "NULL") + ", " +
+                 (zdetails.Action_plan != null ? "'" + zdetails.Action_plan + "'" : "NULL") + ", " +
+                 (zdetails.Stage_Observations != null ? "'" + zdetails.Stage_Observations + "'" : "NULL") + ", " +
+                 (zdetails.Concern_Status != null ? "'" + zdetails.Concern_Status + "'" : "NULL") + ", " +
+                 (zdetails.Remark != null ? "'" + zdetails.Remark + "'" : "NULL") + ", " +
+                 (zdetails.NC != null ? "'" + zdetails.NC + "'" : "NULL") + ", " +
+                 (NcfDocumentHexString != null ? "0x" + NcfDocumentHexString : "NULL") + ", " +
+                 (string.IsNullOrEmpty(NcfDocumentExtension) ? "'.pdf'" : "'" + NcfDocumentExtension + "'") + ", " +
+                 (zdetails.Process_Audit_Status != null ? "'" + zdetails.Process_Audit_Status + "'" : "NULL") + ", " +
+                 (DcpDocumentHexString != null ? "0x" + DcpDocumentHexString : "NULL") + ", " +
+                 (string.IsNullOrEmpty(DcpDocumentExtension) ? "'.pdf'" : "'" + DcpDocumentExtension + "'") + ", " +
+                 (EightDDocBinHexString != null ? "0x" + EightDDocBinHexString : "NULL") + ", " +
+                 (string.IsNullOrEmpty(EightDDocBinExtension) ? "'.pdf'" : "'" + EightDDocBinExtension + "'") + ", " +
+                 (zdetails.layred_Audit != null ? "'" + zdetails.layred_Audit + "'" : "NULL") + "," +
+                 (zdetails.model != null ? "'" + zdetails.model + "'" : "NULL") + "," +
+                  "'XUV', " +
+                  "'14', " +
+              (zdetails.MGF_Sub != null && zdetails.MGF_Sub ? "1" : "0") + ", " +
+
+                (zdetails.MGF_Phenomena_Sub != null ? "'" + zdetails.MGF_Phenomena_Sub + "'" : "NULL") + ", " +
+                (zdetails.MGF_Total_Vechicle_Sub != null ? "'" + zdetails.MGF_Total_Vechicle_Sub + "'" : "NULL") + ", " +
+                (zdetails.Part_Sub != null && zdetails.Part_Sub ? "1" : "0") + ", " +
+                (zdetails.Part_Phenomena_Sub != null ? "'" + zdetails.Part_Phenomena_Sub + "'" : "NULL") + ", " +
+                (zdetails.Part_Total_Vechicle_Sub != null ? "'" + zdetails.Part_Total_Vechicle_Sub + "'" : "NULL") + ", " +
+                (zdetails.Design_Sub != null && zdetails.Design_Sub ? "1" : "0") + ", " +
+                (zdetails.Design_Phenomena_Sub != null ? "'" + zdetails.Design_Phenomena_Sub + "'" : "NULL") + ", " +
+                (zdetails.Design_Total_Vechicle_Sub != null ? "'" + zdetails.Design_Total_Vechicle_Sub + "'" : "NULL") + ", " +
+                (zdetails.U_A_Sub != null && zdetails.U_A_Sub ? "1" : "0") + ", " +
+                (zdetails.U_A_Phenomena_Sub != null ? "'" + zdetails.U_A_Phenomena_Sub + "'" : "NULL") + ", " +
+                (zdetails.U_A_Total_Vechicle_Sub != null ? "'" + zdetails.U_A_Total_Vechicle_Sub + "'" : "NULL") +
+            ")";
+            }
+            else
+            {
+                query = "INSERT INTO ZDetailssubTbl (Stage_No, Field_Concern_Details, Date_of_incidence, Root_Cause, Attribution, Action_plan, Stage_Observations, Concern_Status, Remark, NC, Process_Audit_Status, layred_Audit,model,type,shopid,MGF_Sub,MGF_Phenomena_Sub,MGF_Total_Vechicle_Sub,Part_Sub,Part_Phenomena_Sub,Part_Total_Vechicle_Sub,Design_Sub,Design_Phenomena_Sub,Design_Total_Vechicle_Sub,U_A_Sub,U_A_Phenomena_Sub,U_A_Total_Vechicle_Sub) " +
+                  "VALUES (" +
+                  (id != null ? "'" + id + "'" : "NULL") + ", " +
+                  (zdetails.Field_Concern_Details != null ? "'" + zdetails.Field_Concern_Details + "'" : "NULL") + ", " +
+                  (zdetails.Date_of_incidence.HasValue ? "'" + zdetails.Date_of_incidence.Value.ToString("yyyy-MM-dd") + "'" : "NULL") + ", " +
+                  (zdetails.Root_Cause != null ? "'" + zdetails.Root_Cause + "'" : "NULL") + ", " +
+                  (zdetails.Attribution != null ? "'" + zdetails.Attribution + "'" : "NULL") + ", " +
+                  (zdetails.Action_plan != null ? "'" + zdetails.Action_plan + "'" : "NULL") + ", " +
+                  (zdetails.Stage_Observations != null ? "'" + zdetails.Stage_Observations + "'" : "NULL") + ", " +
+                  (zdetails.Concern_Status != null ? "'" + zdetails.Concern_Status + "'" : "NULL") + ", " +
+                  (zdetails.Remark != null ? "'" + zdetails.Remark + "'" : "NULL") + ", " +
+                  (zdetails.NC != null ? "'" + zdetails.NC + "'" : "NULL") + ", " +
+                  (zdetails.Process_Audit_Status != null ? "'" + zdetails.Process_Audit_Status + "'" : "NULL") + ", " +
+                  (zdetails.layred_Audit != null ? "'" + zdetails.layred_Audit + "'" : "NULL") + "," +
+                  (zdetails.model != null ? "'" + zdetails.model + "'" : "NULL") + "," +
+                 "'XUV'" + ", " +
+                 "'14' , " +
+                (zdetails.MGF_Sub != null && zdetails.MGF_Sub ? "1" : "0") + ", " +
+                (zdetails.MGF_Phenomena_Sub != null ? "'" + zdetails.MGF_Phenomena_Sub + "'" : "NULL") + ", " +
+                (zdetails.MGF_Total_Vechicle_Sub != null ? "'" + zdetails.MGF_Total_Vechicle_Sub + "'" : "NULL") + ", " +
+                (zdetails.Part_Sub != null && zdetails.Part_Sub ? "1" : "0") + ", " +
+                (zdetails.Part_Phenomena_Sub != null ? "'" + zdetails.Part_Phenomena_Sub + "'" : "NULL") + ", " +
+                (zdetails.Part_Total_Vechicle_Sub != null ? "'" + zdetails.Part_Total_Vechicle_Sub + "'" : "NULL") + ", " +
+                (zdetails.Design_Sub != null && zdetails.Design_Sub ? "1" : "0") + ", " +
+                (zdetails.Design_Phenomena_Sub != null ? "'" + zdetails.Design_Phenomena_Sub + "'" : "NULL") + ", " +
+                (zdetails.Design_Total_Vechicle_Sub != null ? "'" + zdetails.Design_Total_Vechicle_Sub + "'" : "NULL") + ", " +
+                //(zdetails.U_A_Sub != null ? "'" + zdetails.U_A_Sub + "'" : "NULL") + ", " +
+                  (zdetails.U_A_Sub != null && zdetails.U_A_Sub ? "1" : "0") + ", " +
+                (zdetails.U_A_Phenomena_Sub != null ? "'" + zdetails.U_A_Phenomena_Sub + "'" : "NULL") + ", " +
+                (zdetails.U_A_Total_Vechicle_Sub != null ? "'" + zdetails.U_A_Total_Vechicle_Sub + "'" : "NULL") +
+            ")";
+
+            }
+
+
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                {
+                    try
+                    {
+                        conn.Open();
+                        cmd.ExecuteNonQuery();
+
+                        ViewBag.Title = "XUV_ZDetails";
+                        return RedirectToAction("XuvIndependentView", "ZDetails", new { id = id });
+                    }
+                    catch (Exception ex)
+                    {
+                        return Json(new { success = false, message = ex.Message });
+                    }
+                }
+            }
+        }
+
+
+
+        public ActionResult DownloadDocument(int id, string Docname)
+        {
+            if (id <= 0)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+
+            string query = string.Empty;
+            if (Docname == "EightDPager")
+            {
+                query = "SELECT EightDDocBin, EightDDocBin_Extension FROM ZDetailssubTbl WHERE subid = " + id;
+            }
+            else if (Docname == "NCSOFI")
+            {
+                query = "SELECT NcfDocument, NcfExtension FROM ZDetailssubTbl WHERE subid = " + id;
+            }
+            else
+            {
+                query = "SELECT DcpDocument, DcpExtension FROM ZDetailssubTbl WHERE subid = " + id;
+            }
+
+            byte[] fileBytes = null;
+            string fileExtension = ".pdf";
+
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                {
+                    try
+                    {
+                        conn.Open();
+                        using (SqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            if (reader.Read())
+                            {
+
+                                if (Docname == "EightDPager")
+                                {
+                                    fileBytes = reader["EightDDocBin"] as byte[];
+                                    fileExtension = reader["EightDDocBin_Extension"] as string ?? ".pdf";
+                                }
+                                else if (Docname == "NCSOFI")
+                                {
+                                    fileBytes = reader["NcfDocument"] as byte[];
+                                    fileExtension = reader["NcfExtension"] as string ?? ".pdf";
+                                }
+                                else
+                                {
+                                    fileBytes = reader["DcpDocument"] as byte[];
+                                    fileExtension = reader["DcpExtension"] as string ?? ".pdf";
+                                }
+
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        return Json(new { success = false, message = ex.Message });
+                    }
+                }
+            }
+
+            if (fileBytes != null)
+            {
+                string defaultFileName = "file_" + id + fileExtension;
+                return File(fileBytes, "application/octet-stream", defaultFileName);
+            }
+            else
+            {
+                return HttpNotFound();
+            }
+        }
+
+
+
+
+
+
+
+        // GET: Concern/EditEdit/5       
+        public ActionResult Edit(int? id)
+        {
+            if (id == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+            Z_Details1 zDetails = db.Z_Details1.Find(id);
+            if (zDetails == null)
+            {
+                return HttpNotFound();
+            }
+            return View(zDetails);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Edit(Z_Details1 zDetails)
+        {
+            if (ModelState.IsValid)
+            {
+                using (SqlConnection conn = new SqlConnection(connectionString))
+                {
+                    using (SqlCommand cmd = new SqlCommand("UpdateZ_Details1", conn))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+
+                        cmd.Parameters.AddWithValue("@Id", zDetails.Sr);
+                        cmd.Parameters.AddWithValue("@Model", zDetails.Model ?? (object)DBNull.Value);
+                        cmd.Parameters.AddWithValue("@StageNo", zDetails.Stage_No ?? (object)DBNull.Value);
+                        cmd.Parameters.AddWithValue("@StageDescription", zDetails.Stage_Description ?? (object)DBNull.Value);
+                        cmd.Parameters.AddWithValue("@FieldConcernDetails", zDetails.Field_Concern_Details ?? (object)DBNull.Value);
+                        cmd.Parameters.AddWithValue("@DateOfIncidence", zDetails.Date_of_incidence ?? (object)DBNull.Value);
+                        cmd.Parameters.AddWithValue("@RootCause", zDetails.Root_Cause ?? (object)DBNull.Value);
+                        cmd.Parameters.AddWithValue("@Attribution", zDetails.Attribution ?? (object)DBNull.Value);
+                        cmd.Parameters.AddWithValue("@ActionPlan", zDetails.Action_plan ?? (object)DBNull.Value);
+                        cmd.Parameters.AddWithValue("@StageObservations", zDetails.Stage_Observations ?? (object)DBNull.Value);
+                        cmd.Parameters.AddWithValue("@ConcernStatus", zDetails.Concern_Status ?? (object)DBNull.Value);
+                        cmd.Parameters.AddWithValue("@DocumentsOr8D", zDetails.Documents_or_8D ?? (object)DBNull.Value);
+                        cmd.Parameters.AddWithValue("@Remark", zDetails.Remark ?? (object)DBNull.Value);
+                        cmd.Parameters.AddWithValue("@NC", zDetails.NC ?? (object)DBNull.Value);
+
+                        try
+                        {
+                            conn.Open();
+                            cmd.ExecuteNonQuery();
+                            return Json(new { success = true });
+                        }
+                        catch (Exception ex)
+                        {
+                            // Log exception details here
+                            return Json(new { success = false, message = ex.Message });
+                        }
+                    }
+                }
+            }
+
+            return View();
+        }
+
+
+        // GET: Concern/Delete/5
+
+        [HttpGet]
+        public ActionResult Delete(int? id)
+        {
+            if (id == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+            Z_Details1 zDetails = db.Z_Details1.Find(id);
+            if (zDetails == null)
+            {
+                return HttpNotFound();
+            }
+            return View(zDetails); // Pass the model to the view
+        }
+
+
+        [HttpPost]
+        public ActionResult Delete(int id)
+        {
+            Z_Details1 zDetails = db.Z_Details1.Find(id);
+            if (zDetails == null)
+            {
+                return HttpNotFound();
+            }
+
+            db.Z_Details1.Remove(zDetails);
+            db.SaveChanges();
+
+            // Return a JSON response to indicate success
+            return Json(new { success = true });
+        }
+
+
+        public ActionResult Update(int? id)
+        {
+            return View();
+        }
+
+
+
+
+        [HttpGet]
+        public ActionResult Details(int? id)
+        {
+            if (id == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+            Z_Details1 zDetails = db.Z_Details1.Find(id);
+            if (zDetails == null)
+            {
+                return HttpNotFound();
+            }
+            return Json(new
+            {
+                Model = zDetails.Model,
+                StageNo = zDetails.Stage_No,
+                StageDesc = zDetails.Stage_Description,
+                FieldConcernDetails = zDetails.Field_Concern_Details,
+                DateOfIncidence = zDetails.Date_of_incidence,
+                RootCause = zDetails.Root_Cause,
+                Attribution = zDetails.Attribution,
+                Actionplan = zDetails.Action_plan,
+                ConcernStatus = zDetails.Concern_Status,
+                Remark = zDetails.Remark,
+            }, JsonRequestBehavior.AllowGet);
+        }
+
+        public ActionResult Z_Stages()
+        {
+            return View();
+        }
+
+        public ActionResult XUV_Z_Stages()
+        {
+            if (TempData["globalData"] != null)
+            {
+                globalData = (GlobalData)TempData["globalData"];
+            }
+
+            globalData.pageTitle = "XUV ZDetails";
+            ViewBag.GlobalDataModel = globalData;
+
+
+
+            ValuesForCount details = null;
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                connection.Open();
+
+                string queryMain = "select count (case when Status = 1 and Status is not null then 1 end) as Red_Count , " +
+                    "count(case when Status = 0 and Status is not null then 1 end) as Green_Count," +
+                    "Count(case when MGF = 1 then 1 end) as mgf_True_Count," +
+                    "Count(case when U_A = 1 then 1 end) as U_A_True_Count," +
+                    "Count(case when Design = 1 then 1 end) as Design_True_Count," +
+                    "Count(case when Part = 1 then 1 end) as Part_True_Count," +
+                    "Count(case when WHF = 1 then 1 end) as WHF_True_Count" +
+                    " from ZDetailsMainTbl";
+                using (SqlCommand command = new SqlCommand(queryMain, connection))
+                {
+                    using (SqlDataReader reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            details = new ValuesForCount
+                            {
+                                Red_Count = reader["Red_Count"] != DBNull.Value ? Convert.ToInt32(reader["Red_Count"]) : 0,
+                                Green_Count = reader["Green_Count"] != DBNull.Value ? Convert.ToInt32(reader["Green_Count"]) : 0,
+                                mgf_True_Count = reader["mgf_True_Count"] != DBNull.Value ? Convert.ToInt32(reader["mgf_True_Count"]) : 0,
+                                U_A_True_Count = reader["U_A_True_Count"] != DBNull.Value ? Convert.ToInt32(reader["U_A_True_Count"]) : 0,
+                                Design_True_Count = reader["Design_True_Count"] != DBNull.Value ? Convert.ToInt32(reader["Design_True_Count"]) : 0,
+                                Part_True_Count = reader["Part_True_Count"] != DBNull.Value ? Convert.ToInt32(reader["Part_True_Count"]) : 0,
+                                WHF_True_Count = reader["WHF_True_Count"] != DBNull.Value ? Convert.ToInt32(reader["WHF_True_Count"]) : 0
+                            };
+                        }
+
+                    }
+                }
+
+                ViewBag.ValuesForCount = details;
+            }
+
+
+            var model = db.Z_Details.ToList();
+            return View(model);
+        }
+
+
+        public class ValuesForCount
+        {
+            public int Red_Count { get; set; }
+            public int Green_Count { get; set; }
+            public int mgf_True_Count { get; set; }
+            public int U_A_True_Count { get; set; }
+            public int Design_True_Count { get; set; }
+            public int Part_True_Count { get; set; }
+            public int WHF_True_Count { get; set; }
+        }
+
+
+        public ActionResult XUV_Z_StagesJSON()
+        {
+            try
+            {
+                if (TempData["globalData"] != null)
+                {
+                    globalData = (GlobalData)TempData["globalData"];
+                }
+
+                globalData.pageTitle = "ZDetails";
+                globalData.subTitle = ResourceGlobal.Lists;
+                globalData.controllerName = "ZDetails";
+                globalData.actionName = ResourceGlobal.Lists;
+
+
+                // List to store the details
+                var zdetails = new List<ZDetailsMain>();
+
+                using (SqlConnection connection = new SqlConnection(connectionString))
+                {
+                    connection.Open();
+                    var query = @"SELECT 
+                                Stage_No AS Sr, 
+                                Model, 
+                                Stage_No, 
+                                Stage_Description, 
+                                D_data, 
+                                P_data, 
+                                U_data, 
+                                M_data,
+                                MGF = isnull((Select DISTINCT MGF_Sub from ZDetailSsubTbl 
+                                              where shopid = Main.shopid and Stage_No = Main.Stage_No and MGF_Sub = 1), 0),
+                                MGF_Phenomena = ISNULL((SELECT SUM(MGF_Phenomena_Sub) FROM ZDetailSsubTbl WHERE shopid = Main.shopid AND Stage_No = Main.Stage_No and MGF_Sub = 1), 0),
+                                MGF_Total_Vechicle = ISNULL((SELECT SUM(MGF_Total_Vechicle_Sub) FROM ZDetailSsubTbl WHERE shopid = Main.shopid AND Stage_No = Main.Stage_No and MGF_Sub = 1), 0),
+                               Part = isnull((Select DISTINCT Part_Sub from ZDetailSsubTbl 
+                                              where shopid = Main.shopid and Stage_No = Main.Stage_No and Part_Sub = 1), 0),
+                                Part_Phenomena = ISNULL((SELECT SUM(Part_Phenomena_Sub) FROM ZDetailSsubTbl WHERE shopid = Main.shopid AND Stage_No = Main.Stage_No and Part_Sub = 1), 0),
+                                Part_Total_Vechicle = ISNULL((SELECT SUM(Part_Total_Vechicle_Sub) FROM ZDetailSsubTbl WHERE shopid = Main.shopid AND Stage_No = Main.Stage_No and Part_Sub = 1), 0),
+                                Design = isnull((Select DISTINCT Design_Sub from ZDetailSsubTbl 
+                                              where shopid = Main.shopid and Stage_No = Main.Stage_No and Design_Sub = 1), 0),
+                                Design_Phenomena = ISNULL((SELECT SUM(Design_Phenomena_Sub) FROM ZDetailSsubTbl WHERE shopid = Main.shopid AND Stage_No = Main.Stage_No and Design_Sub = 1), 0),
+                                Design_Total_Vechicle = ISNULL((SELECT SUM(Design_Total_Vechicle_Sub) FROM ZDetailSsubTbl WHERE shopid = Main.shopid AND Stage_No = Main.Stage_No and Design_Sub = 1), 0),
+                               U_A = isnull((Select DISTINCT U_A_Sub from ZDetailSsubTbl 
+                                              where shopid = Main.shopid and Stage_No = Main.Stage_No and U_A_Sub = 1), 0),
+                                U_A_Phenomena = ISNULL((SELECT SUM(U_A_Phenomena_Sub) FROM ZDetailSsubTbl WHERE shopid = Main.shopid AND Stage_No = Main.Stage_No and U_A_Sub = 1), 0),
+                                U_A_Total_Vechicle = ISNULL((SELECT SUM(U_A_Total_Vechicle_Sub) FROM ZDetailSsubTbl WHERE shopid = Main.shopid AND Stage_No = Main.Stage_No and U_A_Sub = 1), 0),
+                                Phen_OCC, 
+                                WHF, 
+                                Z_Stage, 
+                                E_Stage, 
+                                Status, 
+                                shopid
+                            FROM ZDetailsMainTbl AS Main
+                            WHERE shopid = 14";
+
+                    using (SqlCommand command = new SqlCommand(query, connection))
+                    {
+                        using (SqlDataReader reader = command.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                var detail = new ZDetailsMain
+                                {
+                                    Sr = reader["Stage_No"] != DBNull.Value ? Convert.ToInt32(reader["Stage_No"]) : 0, // Default value if DBNull
+                                    Model = reader["Model"]?.ToString(), // Null-conditional operator
+                                    Stage_No = reader["Stage_No"]?.ToString(),
+                                    Stage_Description = reader["Stage_Description"]?.ToString(),
+                                    D_data = reader["D_data"]?.ToString(),
+                                    P_data = reader["P_data"]?.ToString(),
+                                    U_data = reader["U_data"]?.ToString(),
+                                    M_data = reader["M_data"]?.ToString(),
+                                    MGF = reader["MGF"] != DBNull.Value && Convert.ToInt32(reader["MGF"]) == 1,
+                                    MGF_Phenomena = reader["MGF_Phenomena"] != DBNull.Value ? Convert.ToInt32(reader["MGF_Phenomena"]) : 0,
+                                    MGF_Total_Vechicle = reader["MGF_Total_Vechicle"] != DBNull.Value ? Convert.ToInt32(reader["MGF_Total_Vechicle"]) : 0,
+                                    Part = reader["Part"] != DBNull.Value && Convert.ToInt32(reader["Part"]) == 1,
+                                    Part_Phenomena = reader["Part_Phenomena"] != DBNull.Value ? Convert.ToInt32(reader["Part_Phenomena"]) : 0,
+                                    Part_Total_Vechicle = reader["Part_Total_Vechicle"] != DBNull.Value ? Convert.ToInt32(reader["Part_Total_Vechicle"]) : 0,
+                                    Design = reader["Design"] != DBNull.Value && Convert.ToInt32(reader["Design"]) == 1,
+                                    Design_Phenomena = reader["Design_Phenomena"] != DBNull.Value ? Convert.ToInt32(reader["Design_Phenomena"]) : 0,
+                                    Design_Total_Vechicle = reader["Design_Total_Vechicle"] != DBNull.Value ? Convert.ToInt32(reader["Design_Total_Vechicle"]) : 0,
+                                    U_A = reader["U_A"] != DBNull.Value && Convert.ToInt32(reader["U_A"]) == 1,
+                                    U_A_Phenomena = reader["U_A_Phenomena"] != DBNull.Value ? Convert.ToInt32(reader["U_A_Phenomena"]) : 0,
+                                    U_A_Total_Vechicle = reader["U_A_Total_Vechicle"] != DBNull.Value ? Convert.ToInt32(reader["U_A_Total_Vechicle"]) : 0,
+                                    Phen_OCC = reader["Phen_OCC"] != DBNull.Value && Convert.ToInt32(reader["Phen_OCC"]) == 1,
+                                    WHF = reader["WHF"] != DBNull.Value && Convert.ToInt32(reader["WHF"]) == 1,
+                                    Z_Stage = reader["Z_Stage"] != DBNull.Value && Convert.ToInt32(reader["Z_Stage"]) == 1,
+                                    Status = reader["Status"] != DBNull.Value && Convert.ToInt32(reader["Status"]) == 1,
+                                };
+
+                                zdetails.Add(detail);
+                            }
+                        }
+                    }
+                }
+
+                var jsonSerializer = new JavaScriptSerializer();
+                var jsonResult = jsonSerializer.Serialize(zdetails);
+
+                return Content(jsonResult, "application/json");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine("Error: " + ex.Message);
+                return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, "An error occurred while processing your request.");
+            }
+        }
+
+
+
+        // GET: Concern/Edit/5       
+
+        [HttpGet]
+        public ActionResult XUV_Details(int? id)
+        {
+            if (id == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+
+
+            Z_Details zdetails = db.Z_Details.Find(id);
+
+            if (zdetails == null)
+            {
+                return HttpNotFound();
+            }
+
+            ViewBag.JsonData = JsonConvert.SerializeObject(zdetails);
+
+            return View(zdetails);
+        }
+
+
+
+        public ActionResult XUV_DetailsJSON(int? id)
+        {
+            if (id == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+
+            Z_Details zdetails = db.Z_Details.Find(id);
+
+            if (zdetails == null)
+            {
+                return HttpNotFound();
+            }
+
+            return Json(zdetails, JsonRequestBehavior.AllowGet);
+        }
+
+
+
+        [HttpGet]
+        public ActionResult XUV_Edit(int? id)
+        {
+
+            globalData.pageTitle = "Z-Details Update";
+            globalData.subTitle = ResourceGlobal.Lists;
+            globalData.controllerName = "ZDetails";
+            globalData.actionName = ResourceGlobal.Lists;
+
+
+
+            if (id == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+
+            ZDetailsMain zdetails = null;
+
+            string queryMain = "SELECT * FROM ZDetailsMainTbl WHERE Sr =" + id;
+
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                SqlCommand command = new SqlCommand(queryMain, connection);
+                command.Parameters.AddWithValue("@Id", id);
+
+                connection.Open();
+                SqlDataReader reader = command.ExecuteReader();
+
+                if (reader.Read())
+                {
+                    zdetails = new ZDetailsMain
+                    {
+                        Sr = reader["Stage_No"] != DBNull.Value ? Convert.ToInt32(reader["Stage_No"]) : 0, // Default value if DBNull
+                        Model = reader["Model"]?.ToString(),
+                        Stage_No = reader["Stage_No"]?.ToString(),
+                        Stage_Description = reader["Stage_Description"]?.ToString(),
+                        D_data = reader["D_data"]?.ToString(),
+                        P_data = reader["P_data"]?.ToString(),
+                        U_data = reader["U_data"]?.ToString(),
+                        M_data = reader["M_data"]?.ToString(),
+                        MGF = reader["MGF"] != DBNull.Value && Convert.ToInt32(reader["MGF"]) == 1,
+                        MGF_Phenomena = reader["MGF_Phenomena"] != DBNull.Value ? Convert.ToInt32(reader["MGF_Phenomena"]) : 0,
+                        MGF_Total_Vechicle = reader["MGF_Total_Vechicle"] != DBNull.Value ? Convert.ToInt32(reader["MGF_Total_Vechicle"]) : 0,
+                        Part = reader["Part"] != DBNull.Value && Convert.ToInt32(reader["Part"]) == 1,
+                        Part_Phenomena = reader["Part_Phenomena"] != DBNull.Value ? Convert.ToInt32(reader["Part_Phenomena"]) : 0,
+                        Part_Total_Vechicle = reader["Part_Total_Vechicle"] != DBNull.Value ? Convert.ToInt32(reader["Part_Total_Vechicle"]) : 0,
+                        Design = reader["Design"] != DBNull.Value && Convert.ToInt32(reader["Design"]) == 1,
+                        Design_Phenomena = reader["Design_Phenomena"] != DBNull.Value ? Convert.ToInt32(reader["Design_Phenomena"]) : 0,
+                        Design_Total_Vechicle = reader["Design_Total_Vechicle"] != DBNull.Value ? Convert.ToInt32(reader["Design_Total_Vechicle"]) : 0,
+                        U_A = reader["U_A"] != DBNull.Value && Convert.ToInt32(reader["U_A"]) == 1,
+                        U_A_Phenomena = reader["U_A_Phenomena"] != DBNull.Value ? Convert.ToInt32(reader["U_A_Phenomena"]) : 0,
+                        U_A_Total_Vechicle = reader["U_A_Total_Vechicle"] != DBNull.Value ? Convert.ToInt32(reader["U_A_Total_Vechicle"]) : 0,
+                        Phen_OCC = reader["Phen_OCC"] != DBNull.Value && Convert.ToInt32(reader["Phen_OCC"]) == 1,
+                        WHF = reader["WHF"] != DBNull.Value && Convert.ToInt32(reader["WHF"]) == 1,
+                        Z_Stage = reader["Z_Stage"] != DBNull.Value && Convert.ToInt32(reader["Z_Stage"]) == 1,
+                        Status = reader["Status"] != DBNull.Value && Convert.ToInt32(reader["Status"]) == 1,
+                        E_Stage = reader["E_Stage"] != DBNull.Value && Convert.ToInt32(reader["E_Stage"]) == 1
+
+                    };
+                }
+                reader.Close();
+            }
+
+            if (zdetails == null)
+            {
+                return HttpNotFound();
+            }
+
+            return View(zdetails);
+        }
+
+
+
+        [HttpGet]
+        public ActionResult XUV_Edit_Sub(int? id)
+        {
+            globalData.pageTitle = "Z-Details Update";
+            globalData.subTitle = ResourceGlobal.Lists;
+            globalData.controllerName = "ZDetails";
+            globalData.actionName = ResourceGlobal.Lists;
+
+            if (id == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+
+            ZDetailsSub zdetails = null;
+            string querySub = "SELECT * FROM ZDetailsSubTbl WHERE subid =" + id;
+
+
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                SqlCommand command = new SqlCommand(querySub, connection);
+
+                connection.Open();
+                SqlDataReader reader = command.ExecuteReader();
+
+                if (reader.Read())
+                {
+                    zdetails = new ZDetailsSub
+                    {
+                        Sr = reader["subid"] != DBNull.Value ? Convert.ToInt32(reader["subid"]) : 0,
+                        Stage_No = reader["Stage_No"] != DBNull.Value ? reader["Stage_No"].ToString() : string.Empty,
+                        Field_Concern_Details = reader["Field_Concern_Details"] != DBNull.Value ? reader["Field_Concern_Details"].ToString() : string.Empty,
+                        Date_of_incidence = reader["Date_of_incidence"] != DBNull.Value ? reader.GetDateTime(reader.GetOrdinal("Date_of_incidence")) : (DateTime?)null,
+                        Root_Cause = reader["Root_Cause"] != DBNull.Value ? reader["Root_Cause"].ToString() : string.Empty,
+                        Attribution = reader["Attribution"] != DBNull.Value ? reader["Attribution"].ToString() : string.Empty,
+                        Action_plan = reader["Action_plan"] != DBNull.Value ? reader["Action_plan"].ToString() : string.Empty,
+                        Stage_Observations = reader["Stage_Observations"] != DBNull.Value ? reader["Stage_Observations"].ToString() : string.Empty,
+                        Concern_Status = reader["Concern_Status"] != DBNull.Value ? reader["Concern_Status"].ToString() : string.Empty,
+                        Documents_or_8D = reader["Documents_or_8D"] != DBNull.Value ? reader["Documents_or_8D"].ToString() : string.Empty,
+                        Remark = reader["Remark"] != DBNull.Value ? reader["Remark"].ToString() : string.Empty,
+                        NC = reader["NC"] != DBNull.Value ? reader["NC"].ToString() : string.Empty,
+                        NCS_OFI = reader["NcfDocument"] != DBNull.Value ? (byte[])reader["NcfDocument"] : null,
+                        EightDPager = reader["EightDDocBin"] != DBNull.Value ? (byte[])reader["EightDDocBin"] : null,
+                        DCP = reader["DcpDocument"] != DBNull.Value ? (byte[])reader["DcpDocument"] : null,
+                        Process_Audit_Status = reader["Process_Audit_Status"] != DBNull.Value ? reader["Process_Audit_Status"].ToString() : string.Empty,
+                        layred_Audit = reader["layred_Audit"] != DBNull.Value ? reader["layred_Audit"].ToString() : string.Empty,
+                        model = reader["Model"] != DBNull.Value ? reader["Model"].ToString() : string.Empty,
+                        type = reader["type"] != DBNull.Value ? reader["type"].ToString() : string.Empty,
+
+
+                        MGF_Sub = reader["MGF_Sub"] != DBNull.Value && Convert.ToInt32(reader["MGF_Sub"]) == 1,
+                        MGF_Phenomena_Sub = reader["MGF_Phenomena_Sub"] != DBNull.Value ? Convert.ToInt32(reader["MGF_Phenomena_Sub"]) : 0,
+                        MGF_Total_Vechicle_Sub = reader["MGF_Total_Vechicle_Sub"] != DBNull.Value ? Convert.ToInt32(reader["MGF_Total_Vechicle_Sub"]) : 0,
+                        Part_Sub = reader["Part_Sub"] != DBNull.Value && Convert.ToInt32(reader["Part_Sub"]) == 1,
+                        Part_Phenomena_Sub = reader["Part_Phenomena_Sub"] != DBNull.Value ? Convert.ToInt32(reader["Part_Phenomena_Sub"]) : 0,
+                        Part_Total_Vechicle_Sub = reader["Part_Total_Vechicle_Sub"] != DBNull.Value ? Convert.ToInt32(reader["Part_Total_Vechicle_Sub"]) : 0,
+                        Design_Sub = reader["Design_Sub"] != DBNull.Value && Convert.ToInt32(reader["Design_Sub"]) == 1,
+                        Design_Phenomena_Sub = reader["Design_Phenomena_Sub"] != DBNull.Value ? Convert.ToInt32(reader["Design_Phenomena_Sub"]) : 0,
+                        Design_Total_Vechicle_Sub = reader["Design_Total_Vechicle_Sub"] != DBNull.Value ? Convert.ToInt32(reader["Design_Total_Vechicle_Sub"]) : 0,
+                        U_A_Sub = reader["U_A_Sub"] != DBNull.Value && Convert.ToInt32(reader["U_A_Sub"]) == 1,
+                        U_A_Phenomena_Sub = reader["U_A_Phenomena_Sub"] != DBNull.Value ? Convert.ToInt32(reader["U_A_Phenomena_Sub"]) : 0,
+                        U_A_Total_Vechicle_Sub = reader["U_A_Total_Vechicle_Sub"] != DBNull.Value ? Convert.ToInt32(reader["U_A_Total_Vechicle_Sub"]) : 0,
+                    };
+                }
+                reader.Close();
+            }
+
+            if (zdetails == null)
+            {
+                return HttpNotFound();
+            }
+
+            return View(zdetails);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult XUV_Edit_Sub(ZDetailsSub zdetails, HttpPostedFileBase file, HttpPostedFileBase file1, HttpPostedFileBase file2)
+        {
+
+
+            string DcpDocumentHexString = null;
+            string EightDDocBinHexString = null;
+            string DcpDocumentExtension = null;
+            string EightDDocBinExtension = null;
+
+
+            if (zdetails != null)
+            {
+                string hexString = null;
+                string fileExtension = null;
+                if (file != null && file.ContentLength > 0)
+                {
+
+                    fileExtension = Path.GetExtension(file.FileName);
+                    using (var binaryReader = new BinaryReader(file.InputStream))
+                    {
+                        byte[] fileBytes = binaryReader.ReadBytes(file.ContentLength);
+                        hexString = ByteArrayToHexString(fileBytes);
+                    }
+                }
+
+                //===========================for file 1==============================
+
+                if (file1 != null && file1.ContentLength > 0)
+                {
+
+                    DcpDocumentExtension = Path.GetExtension(file1.FileName);
+                    using (var binaryReader = new BinaryReader(file1.InputStream))
+                    {
+                        byte[] fileBytes = binaryReader.ReadBytes(file1.ContentLength);
+                        DcpDocumentHexString = ByteArrayToHexString(fileBytes);
+                    }
+                }
+
+                //===========================for file 2==============================
+
+                if (file2 != null && file2.ContentLength > 0)
+                {
+
+                    EightDDocBinExtension = Path.GetExtension(file2.FileName);
+                    using (var binaryReader = new BinaryReader(file2.InputStream))
+                    {
+                        byte[] fileBytes = binaryReader.ReadBytes(file2.ContentLength);
+                        EightDDocBinHexString = ByteArrayToHexString(fileBytes);
+                    }
+                }
+
+                using (SqlConnection conn = new SqlConnection(connectionString))
+                {
+                    string query = "";
+                    if (file != null || file1 != null || file2 != null)
+                    {
+                        query = "UPDATE ZDetailSsubTbl SET " +
+                       "Stage_No = " + (zdetails.Stage_No != null ? "'" + zdetails.Stage_No + "'" : "NULL") + ", " +
+                       "Field_Concern_Details = " + (zdetails.Field_Concern_Details != null ? "'" + zdetails.Field_Concern_Details + "'" : "NULL") + ", " +
+                       "Date_of_incidence = " + (zdetails.Date_of_incidence.HasValue ? "'" + zdetails.Date_of_incidence.Value.ToString("yyyy-MM-dd") + "'" : "NULL") + ", " +
+                       "Root_Cause = " + (zdetails.Root_Cause != null ? "'" + zdetails.Root_Cause + "'" : "NULL") + ", " +
+                       "Attribution = " + (zdetails.Attribution != null ? "'" + zdetails.Attribution + "'" : "NULL") + ", " +
+                       "Action_plan = " + (zdetails.Action_plan != null ? "'" + zdetails.Action_plan + "'" : "NULL") + ", " +
+                       "Stage_Observations = " + (zdetails.Stage_Observations != null ? "'" + zdetails.Stage_Observations + "'" : "NULL") + ", " +
+                       "model = " + (zdetails.model != null ? "'" + zdetails.model + "'" : "NULL") + ", " +
+                       //"MGF_Sub = " + (zdetails.MGF_Sub != null ? "'" + zdetails.MGF_Sub + "'" : "NULL") + ", " +
+                       "MGF_Sub = " + (zdetails.MGF_Sub ? (zdetails.MGF_Sub ? "1" : "0") : "NULL") + ", " +
+
+                       "MGF_Phenomena_Sub = " + (zdetails.MGF_Sub == false ? "0" : (zdetails.MGF_Phenomena_Sub != null ? "'" + zdetails.MGF_Phenomena_Sub + "'" : "NULL")) + ", " +
+                       "MGF_Total_Vechicle_Sub = " + (zdetails.MGF_Sub == false ? "0" : (zdetails.MGF_Total_Vechicle_Sub != null ? "'" + zdetails.MGF_Total_Vechicle_Sub + "'" : "NULL")) + ", " +
+
+                        //"MGF_Phenomena_Sub = " + (zdetails.MGF_Phenomena_Sub != null ? "'" + zdetails.MGF_Phenomena_Sub + "'" : "NULL") + ", " +
+                        //"MGF_Total_Vechicle_Sub = " + (zdetails.MGF_Total_Vechicle_Sub != null ? "'" + zdetails.MGF_Total_Vechicle_Sub + "'" : "NULL") + ", " +
+                        //"Part_Sub = " + (zdetails.Part_Sub != null ? "'" + zdetails.Part_Sub + "'" : "NULL") + ", " +
+                        "Part_Sub = " + (zdetails.Part_Sub ? (zdetails.Part_Sub ? "1" : "0") : "NULL") + ", " +
+
+                       "Part_Phenomena_Sub = " + (zdetails.Part_Phenomena_Sub != null ? "'" + zdetails.Part_Phenomena_Sub + "'" : "NULL") + ", " +
+                       "Part_Total_Vechicle_Sub = " + (zdetails.Part_Total_Vechicle_Sub != null ? "'" + zdetails.Part_Total_Vechicle_Sub + "'" : "NULL") + ", " +
+                       //"Design_Sub = " + (zdetails.Design_Sub != null ? "'" + zdetails.Design_Sub + "'" : "NULL") + ", " +
+                       "Design_Sub = " + (zdetails.Design_Sub ? (zdetails.Design_Sub ? "1" : "0") : "NULL") + ", " +
+
+                       "Design_Phenomena_Sub = " + (zdetails.Design_Phenomena_Sub != null ? "'" + zdetails.Design_Phenomena_Sub + "'" : "NULL") + ", " +
+                       "Design_Total_Vechicle_Sub = " + (zdetails.Design_Total_Vechicle_Sub != null ? "'" + zdetails.Design_Total_Vechicle_Sub + "'" : "NULL") + ", " +
+                       //"U_A_Sub = " + (zdetails.U_A_Sub != null ? "'" + zdetails.U_A_Sub + "'" : "NULL") + ", " +
+                       "U_A_Sub = " + (zdetails.U_A_Sub ? (zdetails.U_A_Sub ? "1" : "0") : "NULL") + ", " +
+
+                       "U_A_Phenomena_Sub = " + (zdetails.U_A_Phenomena_Sub != null ? "'" + zdetails.U_A_Phenomena_Sub + "'" : "NULL") + ", " +
+                       "U_A_Total_Vechicle_Sub = " + (zdetails.U_A_Total_Vechicle_Sub != null ? "'" + zdetails.U_A_Total_Vechicle_Sub + "'" : "NULL") + ", ";
+
+                        if (file != null)
+                        {
+                            query += "NcfDocument = " + (hexString != null ? "0x" + hexString : "NULL") + ", " +
+                                     "NcfExtension = " + (string.IsNullOrEmpty(fileExtension) ? "'.pdf'" : "'" + fileExtension + "'") + ", ";
+                        }
+                        if (file1 != null)
+                        {
+                            query += "DcpDocument = " + (DcpDocumentHexString != null ? "0x" + DcpDocumentHexString : "NULL") + ", " +
+                                     "DcpExtension = " + (string.IsNullOrEmpty(DcpDocumentExtension) ? "'.pdf'" : "'" + DcpDocumentExtension + "'") + ", ";
+                        }
+                        if (file2 != null)
+                        {
+
+                            query += "EightDDocBin = " + (EightDDocBinHexString != null ? "0x" + EightDDocBinHexString : "NULL") + ", " +
+                                     "EightDDocBin_Extension = " + (string.IsNullOrEmpty(EightDDocBinExtension) ? "'.pdf'" : "'" + EightDDocBinExtension + "'") + ", ";
+                        }
+
+                        query += "Concern_Status = " + (zdetails.Concern_Status != null ? "'" + zdetails.Concern_Status + "'" : "NULL") + ", " +
+                       "Remark = " + (zdetails.Remark != null ? "'" + zdetails.Remark + "'" : "NULL") + ", " +
+                       "NC = " + (zdetails.NC != null ? "'" + zdetails.NC + "'" : "NULL") + ", " +
+                       "Process_Audit_Status = " + (zdetails.Process_Audit_Status != null ? "'" + zdetails.Process_Audit_Status + "'" : "NULL") + ", " +
+                       "layred_Audit = " + (zdetails.layred_Audit != null ? "'" + zdetails.layred_Audit + "'" : "NULL") + " " +
+                       "WHERE subid = " + (zdetails.Sr != 0 ? "'" + zdetails.Sr + "'" : "NULL") + "and Model = '" + zdetails.model + "'";
+                    }
+                    else
+                    {
+                        query = "UPDATE ZDetailSsubTbl SET " +
+                       "Stage_No = " + (zdetails.Stage_No != null ? "'" + zdetails.Stage_No + "'" : "NULL") + ", " +
+                       "Field_Concern_Details = " + (zdetails.Field_Concern_Details != null ? "'" + zdetails.Field_Concern_Details + "'" : "NULL") + ", " +
+                       "Date_of_incidence = " + (zdetails.Date_of_incidence.HasValue ? "'" + zdetails.Date_of_incidence.Value.ToString("yyyy-MM-dd") + "'" : "NULL") + ", " +
+                       "Root_Cause = " + (zdetails.Root_Cause != null ? "'" + zdetails.Root_Cause + "'" : "NULL") + ", " +
+                       "Attribution = " + (zdetails.Attribution != null ? "'" + zdetails.Attribution + "'" : "NULL") + ", " +
+                       "Action_plan = " + (zdetails.Action_plan != null ? "'" + zdetails.Action_plan + "'" : "NULL") + ", " +
+                       "Stage_Observations = " + (zdetails.Stage_Observations != null ? "'" + zdetails.Stage_Observations + "'" : "NULL") + ", " +
+                       "model = " + (zdetails.model != null ? "'" + zdetails.model + "'" : "NULL") + ", " +
+                       //"MGF_Sub = " + (zdetails.MGF_Sub != null ? "'" + zdetails.MGF_Sub + "'" : "NULL") + ", " +
+                       "MGF_Sub = " + (zdetails.MGF_Sub ? (zdetails.MGF_Sub ? "1" : "0") : "NULL") + ", " +
+
+                       "MGF_Phenomena_Sub = " + (zdetails.MGF_Phenomena_Sub != null ? "'" + zdetails.MGF_Phenomena_Sub + "'" : "NULL") + ", " +
+                       "MGF_Total_Vechicle_Sub = " + (zdetails.MGF_Total_Vechicle_Sub != null ? "'" + zdetails.MGF_Total_Vechicle_Sub + "'" : "NULL") + ", " +
+                       //"Part_Sub = " + (zdetails.Part_Sub != null ? "'" + zdetails.Part_Sub + "'" : "NULL") + ", " +
+                       "Part_Sub = " + (zdetails.Part_Sub ? (zdetails.Part_Sub ? "1" : "0") : "NULL") + ", " +
+
+                       "Part_Phenomena_Sub = " + (zdetails.Part_Phenomena_Sub != null ? "'" + zdetails.Part_Phenomena_Sub + "'" : "NULL") + ", " +
+                       "Part_Total_Vechicle_Sub = " + (zdetails.Part_Total_Vechicle_Sub != null ? "'" + zdetails.Part_Total_Vechicle_Sub + "'" : "NULL") + ", " +
+                       //"Design_Sub = " + (zdetails.Design_Sub != null ? "'" + zdetails.Design_Sub + "'" : "NULL") + ", " +
+                       "Design_Sub = " + (zdetails.Design_Sub ? (zdetails.Design_Sub ? "1" : "0") : "NULL") + ", " +
+
+                       "Design_Phenomena_Sub = " + (zdetails.Design_Phenomena_Sub != null ? "'" + zdetails.Design_Phenomena_Sub + "'" : "NULL") + ", " +
+                       "Design_Total_Vechicle_Sub = " + (zdetails.Design_Total_Vechicle_Sub != null ? "'" + zdetails.Design_Total_Vechicle_Sub + "'" : "NULL") + ", " +
+                       //"U_A_Sub = " + (zdetails.U_A_Sub != null ? "'" + zdetails.U_A_Sub + "'" : "NULL") + ", " +
+                       "U_A_Sub = " + (zdetails.U_A_Sub ? (zdetails.U_A_Sub ? "1" : "0") : "NULL") + ", " +
+
+                       "U_A_Phenomena_Sub = " + (zdetails.U_A_Phenomena_Sub != null ? "'" + zdetails.U_A_Phenomena_Sub + "'" : "NULL") + ", " +
+                       "U_A_Total_Vechicle_Sub = " + (zdetails.U_A_Total_Vechicle_Sub != null ? "'" + zdetails.U_A_Total_Vechicle_Sub + "'" : "NULL") + ", " +
+
+                        "Concern_Status = " + (zdetails.Concern_Status != null ? "'" + zdetails.Concern_Status + "'" : "NULL") + ", " +
+                       "Remark = " + (zdetails.Remark != null ? "'" + zdetails.Remark + "'" : "NULL") + ", " +
+                        "NC = " + (zdetails.NC != null ? "'" + zdetails.NC + "'" : "NULL") + ", " +
+                        "Process_Audit_Status = " + (zdetails.Process_Audit_Status != null ? "'" + zdetails.Process_Audit_Status + "'" : "NULL") + ", " +
+                        "layred_Audit = " + (zdetails.layred_Audit != null ? "'" + zdetails.layred_Audit + "'" : "NULL") + " " +
+                       "WHERE subid = " + (zdetails.Sr != 0 ? "'" + zdetails.Sr + "'" : "NULL ") + " and Type = '" + zdetails.type + "'";
+                    }
+
+                    try
+                    {
+                        conn.Open();
+                        using (SqlCommand cmd = new SqlCommand(query, conn))
+                        {
+                            int rowsAffected = cmd.ExecuteNonQuery();
+                            if (rowsAffected > 0)
+                            {
+                                if (zdetails.type == "XUV")
+                                {
+                                    return RedirectToAction("XuvIndependentView", "ZDetails", new { id = zdetails.Stage_No });
+                                }
+                                else if (zdetails.type == "Scorpio")
+                                {
+                                    return RedirectToAction("ScorpioIndependentView", "ZDetails", new { id = zdetails.Stage_No });
+                                }
+
+
+                            }
+
+                            else
+                            {
+                                return Json(new { success = false, message = "No records updated." });
+                            }
+                        }
+                    }
+
+                    catch (Exception ex)
+
+                    {
+                        return Json(new { success = false, message = ex.Message });
+                    }
+
+                }
+            }
+
+            return View();
+
+        }
+
+        [HttpGet]
+        public ActionResult XUV_Delete_Sub(int? id)
+        {
+            globalData.pageTitle = "Z-Details Update";
+            globalData.subTitle = ResourceGlobal.Lists;
+            globalData.controllerName = "ZDetails";
+            globalData.actionName = ResourceGlobal.Lists;
+
+
+            if (id == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+
+            ZDetailsSub zdetails = null;
+            string querySub = "SELECT * FROM ZDetailsSubTbl WHERE subid =" + id;
+
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                SqlCommand command = new SqlCommand(querySub, connection);
+
+                connection.Open();
+                SqlDataReader reader = command.ExecuteReader();
+
+                if (reader.Read())
+                {
+                    zdetails = new ZDetailsSub
+                    {
+                        Sr = reader["subid"] != DBNull.Value ? Convert.ToInt32(reader["subid"]) : 0,
+                        Stage_No = reader["Stage_No"] != DBNull.Value ? reader["Stage_No"].ToString() : string.Empty,
+                        model = reader["model"] != DBNull.Value ? reader["model"].ToString() : string.Empty,
+                        type = reader["type"] != DBNull.Value ? reader["type"].ToString() : string.Empty,
+                        Field_Concern_Details = reader["Field_Concern_Details"] != DBNull.Value ? reader["Field_Concern_Details"].ToString() : string.Empty,
+                        Date_of_incidence = reader["Date_of_incidence"] != DBNull.Value ? reader.GetDateTime(reader.GetOrdinal("Date_of_incidence")) : (DateTime?)null,
+                        Root_Cause = reader["Root_Cause"] != DBNull.Value ? reader["Root_Cause"].ToString() : string.Empty,
+                        Attribution = reader["Attribution"] != DBNull.Value ? reader["Attribution"].ToString() : string.Empty,
+                        Action_plan = reader["Action_plan"] != DBNull.Value ? reader["Action_plan"].ToString() : string.Empty,
+                        Stage_Observations = reader["Stage_Observations"] != DBNull.Value ? reader["Stage_Observations"].ToString() : string.Empty,
+                        Concern_Status = reader["Concern_Status"] != DBNull.Value ? reader["Concern_Status"].ToString() : string.Empty,
+                        Documents_or_8D = reader["Documents_or_8D"] != DBNull.Value ? reader["Documents_or_8D"].ToString() : string.Empty,
+                        Remark = reader["Remark"] != DBNull.Value ? reader["Remark"].ToString() : string.Empty,
+                        NC = reader["NC"] != DBNull.Value ? reader["NC"].ToString() : string.Empty,
+                        NCS_OFI = reader["NcfDocument"] != DBNull.Value ? (byte[])reader["NcfDocument"] : null,
+                        EightDPager = reader["EightDDocBin"] != DBNull.Value ? (byte[])reader["EightDDocBin"] : null,
+                        DCP = reader["DcpDocument"] != DBNull.Value ? (byte[])reader["DcpDocument"] : null,
+                        Process_Audit_Status = reader["Process_Audit_Status"] != DBNull.Value ? reader["Process_Audit_Status"].ToString() : string.Empty
+                    };
+                }
+                reader.Close();
+            }
+
+            if (zdetails == null)
+            {
+                return HttpNotFound();
+            }
+
+            if (zdetails != null)
+            {
+
+            }
+
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                string query = "delete from ZDetailSsubTbl WHERE subid = " + (zdetails.Sr != 0 ? "'" + zdetails.Sr + "'" : "NULL");
+                try
+
+                {
+
+                    conn.Open();
+
+                    using (SqlCommand cmd = new SqlCommand(query, conn))
+
+                    {
+
+                        int rowsAffected = cmd.ExecuteNonQuery();
+
+                        if (zdetails.type == "XUV")
+                        {
+                            return RedirectToAction("XuvIndependentView", "ZDetails", new { id = zdetails.Stage_No });
+
+                        }
+                        else if (zdetails.type == "Scorpio")
+                        {
+                            return RedirectToAction("ScorpioIndependentView", "ZDetails", new { id = zdetails.Stage_No });
+                        }
+                    }
+                }
+
+                catch (Exception ex)
+
+                {
+                    return Json(new { success = false, message = ex.Message });
+                }
+                return View();
+
+            }
+
+        }
+
+
+
+
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult XUV_Edit(ZDetailsMain zdetails)
+        {
+
+
+            if (zdetails != null)
+            {
+                using (SqlConnection conn = new SqlConnection(connectionString))
+                {
+                    string query = "UPDATE ZDetailsMainTbl SET ";
+
+                    query += "Stage_No = " + (zdetails.Stage_No != null ? "'" + zdetails.Stage_No + "'" : "NULL") + ", ";
+                    query += "Stage_Description = " + (zdetails.Stage_Description != null ? "'" + zdetails.Stage_Description + "'" : "NULL") + ", ";
+                    query += "MGF = " + (zdetails.MGF ? 1 : 0) + ", ";
+                    query += "MGF_Phenomena = " + (zdetails.MGF_Phenomena != null ? zdetails.MGF_Phenomena.ToString() : "NULL") + ", ";
+                    query += "MGF_Total_Vechicle = " + (zdetails.MGF_Total_Vechicle != null ? zdetails.MGF_Total_Vechicle.ToString() : "NULL") + ", ";
+                    query += "Part = " + (zdetails.Part ? 1 : 0) + ", ";
+                    query += "Part_Phenomena = " + (zdetails.Part_Phenomena != null ? zdetails.Part_Phenomena.ToString() : "NULL") + ", ";
+                    query += "Part_Total_Vechicle = " + (zdetails.Part_Total_Vechicle != null ? zdetails.Part_Total_Vechicle.ToString() : "NULL") + ", ";
+                    query += "Design = " + (zdetails.Design ? 1 : 0) + ", ";
+                    query += "Design_Phenomena = " + (zdetails.Design_Phenomena != null ? zdetails.Design_Phenomena.ToString() : "NULL") + ", ";
+                    query += "Design_Total_Vechicle = " + (zdetails.Design_Total_Vechicle != null ? zdetails.Design_Total_Vechicle.ToString() : "NULL") + ", ";
+                    query += "U_A = " + (zdetails.U_A ? 1 : 0) + ", ";
+                    query += "U_A_Phenomena = " + (zdetails.U_A_Phenomena != null ? zdetails.U_A_Phenomena.ToString() : "NULL") + ", ";
+                    query += "U_A_Total_Vechicle = " + (zdetails.U_A_Total_Vechicle != null ? zdetails.U_A_Total_Vechicle.ToString() : "NULL") + ", ";
+                    query += "Phen_OCC = " + (zdetails.Phen_OCC ? 1 : 0) + ", ";
+                    query += "Z_Stage = " + (zdetails.Z_Stage ? 1 : 0) + ", ";
+                    query += "WHF = " + (zdetails.WHF ? 1 : 0) + ", ";
+                    query += "E_Stage = " + (zdetails.E_Stage ? 1 : 0) + ", ";
+                    query += "D_data = " + (zdetails.D_data != null ? "'" + zdetails.D_data + "'" : "NULL") + ", ";
+                    query += "P_data = " + (zdetails.P_data != null ? "'" + zdetails.P_data + "'" : "NULL") + ", ";
+                    query += "U_data = " + (zdetails.U_data != null ? "'" + zdetails.U_data + "'" : "NULL") + ", ";
+                    query += "M_data = " + (zdetails.M_data != null ? "'" + zdetails.M_data + "'" : "NULL") + ", ";
+                    query += "pptupload = " + (zdetails.pptupload != null ? "'" + zdetails.pptupload + "'" : "NULL") + ", ";
+                    query += "Status = " + (zdetails.Status ? 1 : 0) + " ";
+                    query += "WHERE Stage_No = " + zdetails.Stage_No + "and Model = '" + zdetails.Model + "'";
+
+
+                    try
+
+                    {
+
+                        conn.Open();
+
+                        using (SqlCommand cmd = new SqlCommand(query, conn))
+
+                        {
+
+                            int rowsAffected = cmd.ExecuteNonQuery();
+
+                            if (rowsAffected > 0)
+                            {
+
+                                if (zdetails.Model == "XUV TCF")
+                                {
+                                    return RedirectToAction("XuvIndependentView", "ZDetails", new { id = zdetails.Stage_No });
+
+                                }
+                                else if (zdetails.Model == "Scorpio TCF")
+                                {
+                                    return RedirectToAction("ScorpioIndependentView", "ZDetails", new { id = zdetails.Stage_No });
+                                }
+
+
+
+                            }
+
+                            else
+                            {
+                                return Json(new { success = false, message = "No records updated." });
+                            }
+                        }
+                    }
+
+                    catch (Exception ex)
+
+                    {
+                        return Json(new { success = false, message = ex.Message });
+                    }
+
+                }
+
+            }
+
+            return View();
+
+        }
+
+
+
+
+
+        [HttpGet]
+        public ActionResult XUV_Delete(int? id)
+        {
+            if (id == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+            Z_Details zdetails = db.Z_Details.Find(id);
+            if (zdetails == null)
+            {
+                return HttpNotFound();
+            }
+            return View(zdetails); // Pass the model to the view
+        }
+
+
+        [HttpPost]
+        public ActionResult XUV_Delete(int id)
+        {
+            Z_Details zdetails = db.Z_Details.Find(id);
+            if (zdetails == null)
+            {
+                return HttpNotFound();
+            }
+
+            db.Z_Details.Remove(zdetails);
+            db.SaveChanges();
+
+            // Return a JSON response to indicate success
+            return Json(new { success = true });
+        }
+
+
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                db.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+
+
+
+
+        public ActionResult XuvIndependentView(string id, string shopname)
+        {
+            globalData.pageTitle = "XUVZDetails";
+            globalData.subTitle = ResourceGlobal.Lists;
+            globalData.controllerName = "ZDetails";
+            globalData.actionName = ResourceGlobal.Lists;
+
+            List<ZDetailsMain> mainlist = new List<ZDetailsMain>();
+            List<ZDetailsSub> sublist = new List<ZDetailsSub>();
+
+            Session["stageno"] = id;
+            try
+            {
+                using (SqlConnection connection = new SqlConnection(connectionString))
+                {
+                    connection.Open();
+                    string queryMain;
+
+
+                    queryMain = "SELECT * FROM ZDetailsMainTbl WHERE Stage_No =" + id + "and  model = 'XUV TCF'";
+
+
+                    using (SqlCommand command = new SqlCommand(queryMain, connection))
+                    {
+                        using (SqlDataReader reader = command.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                var detail = new ZDetailsMain
+                                {
+                                    Sr = reader["Sr"] != DBNull.Value ? Convert.ToInt32(reader["Sr"]) : 0,
+                                    Model = reader["Model"] != DBNull.Value ? reader["Model"].ToString() : string.Empty,
+                                    Stage_No = reader["Stage_No"] != DBNull.Value ? reader["Stage_No"].ToString() : string.Empty,
+                                    Stage_Description = reader["Stage_Description"] != DBNull.Value ? reader["Stage_Description"].ToString() : string.Empty,
+                                    D_data = reader["D_data"] != DBNull.Value ? reader["D_data"].ToString() : string.Empty,
+                                    P_data = reader["P_data"] != DBNull.Value ? reader["P_data"].ToString() : string.Empty,
+                                    U_data = reader["U_data"] != DBNull.Value ? reader["U_data"].ToString() : string.Empty,
+                                    M_data = reader["M_data"] != DBNull.Value ? reader["M_data"].ToString() : string.Empty,
+                                    MGF = reader["MGF"] != DBNull.Value && Convert.ToBoolean(reader["MGF"]),
+                                    Part = reader["Part"] != DBNull.Value && Convert.ToBoolean(reader["Part"]),
+                                    Design = reader["Design"] != DBNull.Value && Convert.ToBoolean(reader["Design"]),
+                                    U_A = reader["U_A"] != DBNull.Value && Convert.ToBoolean(reader["U_A"]),
+                                    Phen_OCC = reader["Phen_OCC"] != DBNull.Value && Convert.ToBoolean(reader["Phen_OCC"]),
+                                    Z_Stage = reader["Z_Stage"] != DBNull.Value && Convert.ToBoolean(reader["Z_Stage"]),
+                                    WHF = reader["WHF"] != DBNull.Value && Convert.ToBoolean(reader["WHF"]),
+                                    Status = reader["Status"] != DBNull.Value && Convert.ToBoolean(reader["Status"])
+                                };
+                                mainlist.Add(detail);
+                            }
+                        }
+                    }
+
+
+
+                    string querySub = "SELECT * FROM ZDetailsSubTbl WHERE Stage_No =" + id + "And type='XUV'";
+
+
+                    using (SqlCommand commandSub = new SqlCommand(querySub, connection))
+                    {
+                        using (SqlDataReader reader = commandSub.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                var detail = new ZDetailsSub
+                                {
+                                    Sr = reader["subid"] != DBNull.Value ? Convert.ToInt32(reader["subid"]) : 0,
+                                    Stage_No = reader["Stage_No"] != DBNull.Value ? reader["Stage_No"].ToString() : string.Empty,
+                                    Field_Concern_Details = reader["Field_Concern_Details"] != DBNull.Value ? reader["Field_Concern_Details"].ToString() : string.Empty,
+                                    Date_of_incidence = reader["Date_of_incidence"] != DBNull.Value ? reader.GetDateTime(reader.GetOrdinal("Date_of_incidence")) : (DateTime?)null,
+                                    Root_Cause = reader["Root_Cause"] != DBNull.Value ? reader["Root_Cause"].ToString() : string.Empty,
+                                    Attribution = reader["Attribution"] != DBNull.Value ? reader["Attribution"].ToString() : string.Empty,
+                                    Action_plan = reader["Action_plan"] != DBNull.Value ? reader["Action_plan"].ToString() : string.Empty,
+                                    Stage_Observations = reader["Stage_Observations"] != DBNull.Value ? reader["Stage_Observations"].ToString() : string.Empty,
+                                    Concern_Status = reader["Concern_Status"] != DBNull.Value ? reader["Concern_Status"].ToString() : string.Empty,
+                                    Documents_or_8D = reader["Documents_or_8D"] != DBNull.Value ? reader["Documents_or_8D"].ToString() : string.Empty,
+                                    Remark = reader["Remark"] != DBNull.Value ? reader["Remark"].ToString() : string.Empty,
+                                    model = reader["model"] != DBNull.Value ? reader["model"].ToString() : string.Empty,
+                                    NC = reader["NC"] != DBNull.Value ? reader["NC"].ToString() : string.Empty,
+                                    NCS_OFI = reader["NcfDocument"] != DBNull.Value ? (byte[])reader["NcfDocument"] : null,
+                                    EightDPager = reader["EightDDocBin"] != DBNull.Value ? (byte[])reader["EightDDocBin"] : null,
+                                    DCP = reader["DcpDocument"] != DBNull.Value ? (byte[])reader["DcpDocument"] : null,
+                                    Process_Audit_Status = reader["Process_Audit_Status"] != DBNull.Value ? reader["Process_Audit_Status"].ToString() : string.Empty,
+                                    layred_Audit = reader["layred_Audit"] != DBNull.Value ? reader["layred_Audit"].ToString() : string.Empty
+                                };
+                                sublist.Add(detail);
+                            }
+                        }
+                    }
+
+                    ViewBag.Maintable = mainlist;
+                    ViewBag.Sublist = sublist;
+                }
+            }
+            catch (Exception ex)
+            {
+
+                return View("Error", new HandleErrorInfo(ex, "ZDetails", "XuvIndependentView"));
+            }
+
+            return View();
+        }
+
+
+
+        //===============================Scorpio==============================================
+
+        public ActionResult ScorpioIndependentView(string id, string shopname)
+        {
+            globalData.pageTitle = "ScorpioZDetails";
+            globalData.subTitle = ResourceGlobal.Lists;
+            globalData.controllerName = "ZDetails";
+            globalData.actionName = ResourceGlobal.Lists;
+
+            List<ZDetailsMain> mainlist = new List<ZDetailsMain>();
+            List<ZDetailsSub> sublist = new List<ZDetailsSub>();
+
+            Session["stageno"] = id;
+            try
+            {
+                using (SqlConnection connection = new SqlConnection(connectionString))
+                {
+                    connection.Open();
+
+                    string queryMain = "Select * from ZDetailsMainTbl where Stage_No=" + id + "and model= 'Scorpio TCF'";
+
+
+                    using (SqlCommand command = new SqlCommand(queryMain, connection))
+                    {
+                        using (SqlDataReader reader = command.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                var detail = new ZDetailsMain
+                                {
+                                    Sr = reader["Sr"] != DBNull.Value ? Convert.ToInt32(reader["Sr"]) : 0,
+                                    Model = reader["Model"] != DBNull.Value ? reader["Model"].ToString() : string.Empty,
+                                    Stage_No = reader["Stage_No"] != DBNull.Value ? reader["Stage_No"].ToString() : string.Empty,
+                                    Stage_Description = reader["Stage_Description"] != DBNull.Value ? reader["Stage_Description"].ToString() : string.Empty,
+                                    D_data = reader["D_data"] != DBNull.Value ? reader["D_data"].ToString() : string.Empty,
+                                    P_data = reader["P_data"] != DBNull.Value ? reader["P_data"].ToString() : string.Empty,
+                                    U_data = reader["U_data"] != DBNull.Value ? reader["U_data"].ToString() : string.Empty,
+                                    M_data = reader["M_data"] != DBNull.Value ? reader["M_data"].ToString() : string.Empty,
+                                    MGF = reader["MGF"] != DBNull.Value && Convert.ToBoolean(reader["MGF"]),
+                                    Part = reader["Part"] != DBNull.Value && Convert.ToBoolean(reader["Part"]),
+                                    Design = reader["Design"] != DBNull.Value && Convert.ToBoolean(reader["Design"]),
+                                    U_A = reader["U_A"] != DBNull.Value && Convert.ToBoolean(reader["U_A"]),
+                                    Phen_OCC = reader["Phen_OCC"] != DBNull.Value && Convert.ToBoolean(reader["Phen_OCC"]),
+                                    Z_Stage = reader["Z_Stage"] != DBNull.Value && Convert.ToBoolean(reader["Z_Stage"]),
+                                    WHF = reader["WHF"] != DBNull.Value && Convert.ToBoolean(reader["WHF"]),
+                                    E_Stage = reader["E_Stage"] != DBNull.Value && Convert.ToBoolean(reader["E_Stage"]),
+                                    Status = reader["Status"] != DBNull.Value && Convert.ToBoolean(reader["Status"])
+                                };
+                                mainlist.Add(detail);
+                            }
+                        }
+                    }
+
+                    string querySub = "SELECT * FROM ZDetailsSubTbl WHERE Stage_No =" + id + "and Type='Scorpio'";
+
+                    using (SqlCommand commandSub = new SqlCommand(querySub, connection))
+                    {
+                        using (SqlDataReader reader = commandSub.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                var detail = new ZDetailsSub
+                                {
+                                    Sr = reader["subid"] != DBNull.Value ? Convert.ToInt32(reader["subid"]) : 0,
+                                    Stage_No = reader["Stage_No"] != DBNull.Value ? reader["Stage_No"].ToString() : string.Empty,
+                                    Field_Concern_Details = reader["Field_Concern_Details"] != DBNull.Value ? reader["Field_Concern_Details"].ToString() : string.Empty,
+                                    Date_of_incidence = reader["Date_of_incidence"] != DBNull.Value ? reader.GetDateTime(reader.GetOrdinal("Date_of_incidence")) : (DateTime?)null,
+                                    Root_Cause = reader["Root_Cause"] != DBNull.Value ? reader["Root_Cause"].ToString() : string.Empty,
+                                    Attribution = reader["Attribution"] != DBNull.Value ? reader["Attribution"].ToString() : string.Empty,
+                                    model = reader["model"] != DBNull.Value ? reader["model"].ToString() : string.Empty,
+                                    Action_plan = reader["Action_plan"] != DBNull.Value ? reader["Action_plan"].ToString() : string.Empty,
+                                    Stage_Observations = reader["Stage_Observations"] != DBNull.Value ? reader["Stage_Observations"].ToString() : string.Empty,
+                                    Concern_Status = reader["Concern_Status"] != DBNull.Value ? reader["Concern_Status"].ToString() : string.Empty,
+                                    Documents_or_8D = reader["Documents_or_8D"] != DBNull.Value ? reader["Documents_or_8D"].ToString() : string.Empty,
+                                    Remark = reader["Remark"] != DBNull.Value ? reader["Remark"].ToString() : string.Empty,
+                                    NC = reader["NC"] != DBNull.Value ? reader["NC"].ToString() : string.Empty,
+                                    NCS_OFI = reader["NcfDocument"] != DBNull.Value ? (byte[])reader["NcfDocument"] : null,
+                                    EightDPager = reader["EightDDocBin"] != DBNull.Value ? (byte[])reader["EightDDocBin"] : null,
+                                    DCP = reader["DcpDocument"] != DBNull.Value ? (byte[])reader["DcpDocument"] : null,
+                                    Process_Audit_Status = reader["Process_Audit_Status"] != DBNull.Value ? reader["Process_Audit_Status"].ToString() : string.Empty,
+                                    layred_Audit = reader["layred_Audit"] != DBNull.Value ? reader["layred_Audit"].ToString() : string.Empty
+                                };
+                                sublist.Add(detail);
+                            }
+                        }
+                    }
+
+                    ViewBag.Maintable = mainlist;
+                    ViewBag.Sublist = sublist;
+                }
+            }
+            catch (Exception ex)
+            {
+
+                return View("Error", new HandleErrorInfo(ex, "ZDetails", "ScorpioIndependentView"));
+            }
+
+            return View();
+        }
+
+
+        public class ValuesForCount_Scoripio
+        {
+            public int Red_Count { get; set; }
+            public int Green_Count { get; set; }
+            public int mgf_True_Count { get; set; }
+            public int U_A_True_Count { get; set; }
+            public int Design_True_Count { get; set; }
+            public int Part_True_Count { get; set; }
+            public int E_Stage_Count { get; set; }
+            public int thar_Concerns_count { get; set; }
+            public int thar_Concerns_Green_count { get; set; }
+            public int thar_Concerns_Red_count { get; set; }
+
+            public int Scorpio_Concerns_Red_count { get; set; }
+
+            public int Scorpio_Concerns_Green_count { get; set; }
+            public int Scorpio_Concerns_count { get; set; }
+        }
+
+
+        //========================================================Scorpio===================================================================================
+
+        public ActionResult Scorpio_Z_Stages()
+        {
+            if (TempData["globalData"] != null)
+            {
+                globalData = (GlobalData)TempData["globalData"];
+            }
+            globalData.pageTitle = "Scorpio ZDetails";
+            ViewBag.GlobalDataModel = globalData;
+
+
+            ValuesForCount_Scoripio details = null;
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                connection.Open();
+
+                string queryMain = "select count(case when zm.Status = 1 and zm.Status is not null and zm.Model = 'Scorpio TCF'  then 1 end) as red_stage,";
+                queryMain += "count(case when zm.Status = 0 and zm.Status is not null and zm.Model = 'Scorpio TCF' then 1 end) as green_stage,";
+                queryMain += "Count(case when MGF = 1  and zm.Model = 'Scorpio TCF' then 1 end) as mgf_True_Count, ";
+                queryMain += "Count(case when U_A = 1 and zm.Model = 'Scorpio TCF' then 1 end) as Uv_True_Count,";
+                queryMain += "Count(case when Design = 1 and zm.Model = 'Scorpio TCF' then 1 end) as Design_True_Count,";
+                queryMain += "Count(case when Part = 1 and  zm.Model = 'Scorpio TCF' then 1 end) as Part_True_Count,";
+                queryMain += "Count(case when  zm.E_Stage = 1 and  zm.Model = 'Scorpio TCF' then 1 end) as E_Stage_Count,";
+                queryMain += "thar_Concerns_count = (select COUNT (*)from ZDetailSsubTbl where model = 'Thar' and type = 'Scorpio') ,";
+                queryMain += "Scorpio_Concerns_count = (select COUNT (*)from ZDetailSsubTbl where model = 'Scorpio' and type = 'Scorpio'), ";
+
+
+                queryMain += "thar_Concern_red_count = ( select COUNT(*) from ZDetailsMainTbl where Model = 'Scorpio TCF' and Stage_No in (select Stage_No from ZDetailSsubTbl zs where zs.model = 'Thar' and zs.type = 'Scorpio') and Status = 1)," +
+                    "thar_Concern_Green_count = (select COUNT(*) from ZDetailsMainTbl where Model = 'Scorpio TCF' and Stage_No in (select Stage_No from ZDetailSsubTbl zs " +
+                    "where zs.model = 'Thar' and zs.type = 'Scorpio') and Status = 0),Scorpio_Concerns_Green_count = (select COUNT(*) from ZDetailsMainTbl where Model = 'Scorpio TCF' " +
+                    "and Stage_No in (select Stage_No from ZDetailSsubTbl zs where zs.model = 'Scorpio' and zs.type = 'Scorpio') and Status = 0)," +
+                    "Scorpio_Concerns_Red_count = (select COUNT(*) from ZDetailsMainTbl where Model = 'Scorpio TCF' and Stage_No in (select Stage_No from ZDetailSsubTbl zs where zs.model = 'Scorpio' and zs.type = 'Scorpio') and Status = 1)";
+
+
+                queryMain += " from ZDetailsMainTbl zm";
+
+
+                using (SqlCommand command = new SqlCommand(queryMain, connection))
+                {
+                    using (SqlDataReader reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            details = new ValuesForCount_Scoripio
+                            {
+                                Red_Count = reader["red_stage"] != DBNull.Value ? Convert.ToInt32(reader["red_stage"]) : 0,
+                                Green_Count = reader["green_stage"] != DBNull.Value ? Convert.ToInt32(reader["green_stage"]) : 0,
+                                mgf_True_Count = reader["mgf_True_Count"] != DBNull.Value ? Convert.ToInt32(reader["mgf_True_Count"]) : 0,
+                                U_A_True_Count = reader["Uv_True_Count"] != DBNull.Value ? Convert.ToInt32(reader["Uv_True_Count"]) : 0,
+                                Design_True_Count = reader["Design_True_Count"] != DBNull.Value ? Convert.ToInt32(reader["Design_True_Count"]) : 0,
+                                Part_True_Count = reader["Part_True_Count"] != DBNull.Value ? Convert.ToInt32(reader["Part_True_Count"]) : 0,
+                                E_Stage_Count = reader["E_Stage_Count"] != DBNull.Value ? Convert.ToInt32(reader["E_Stage_Count"]) : 0,
+                                thar_Concerns_count = reader["thar_Concerns_count"] != DBNull.Value ? Convert.ToInt32(reader["thar_Concerns_count"]) : 0,
+                                Scorpio_Concerns_count = reader["Scorpio_Concerns_count"] != DBNull.Value ? Convert.ToInt32(reader["Scorpio_Concerns_count"]) : 0,
+                                thar_Concerns_Green_count = reader["thar_Concern_Green_count"] != DBNull.Value ? Convert.ToInt32(reader["thar_Concern_Green_count"]) : 0,
+                                thar_Concerns_Red_count = reader["thar_Concern_red_count"] != DBNull.Value ? Convert.ToInt32(reader["thar_Concern_red_count"]) : 0,
+                                Scorpio_Concerns_Red_count = reader["Scorpio_Concerns_Red_count"] != DBNull.Value ? Convert.ToInt32(reader["Scorpio_Concerns_Red_count"]) : 0,
+                                Scorpio_Concerns_Green_count = reader["Scorpio_Concerns_Green_count"] != DBNull.Value ? Convert.ToInt32(reader["Scorpio_Concerns_Green_count"]) : 0,
+                            };
+                        }
+                    }
+                }
+                ViewBag.ValuesForCount_Scorpio = details;
+            }
+            var model = db.Z_Details.Where(z => z.Model == "scorpio").ToList();
+            return View(model);
+        }
+
+
+
+
+        public ActionResult Scorpio_Z_StagesJSON()
+        {
+            try
+            {
+                if (TempData["globalData"] != null)
+                {
+                    globalData = (GlobalData)TempData["globalData"];
+                }
+
+                globalData.pageTitle = "ZDetails";
+                globalData.subTitle = ResourceGlobal.Lists;
+                globalData.controllerName = "ZDetails";
+                globalData.actionName = ResourceGlobal.Lists;
+
+
+                // List to store the details
+                var zdetails = new List<ZDetailsMain>();
+
+                using (SqlConnection connection = new SqlConnection(connectionString))
+                {
+                    connection.Open();
+                    var query = @"SELECT 
+                                Stage_No AS Sr, 
+                                Model, 
+                                Stage_No, 
+                                Stage_Description, 
+                                D_data, 
+                                P_data, 
+                                U_data, 
+                                M_data,
+                                MGF = isnull((Select DISTINCT MGF_Sub from ZDetailSsubTbl 
+                                              where shopid = Main.shopid and Stage_No = Main.Stage_No and MGF_Sub = 1), 0),
+                                MGF_Phenomena = ISNULL((SELECT SUM(MGF_Phenomena_Sub) FROM ZDetailSsubTbl WHERE shopid = Main.shopid AND Stage_No = Main.Stage_No and MGF_Sub = 1), 0),
+                                MGF_Total_Vechicle = ISNULL((SELECT SUM(MGF_Total_Vechicle_Sub) FROM ZDetailSsubTbl WHERE shopid = Main.shopid AND Stage_No = Main.Stage_No and MGF_Sub = 1), 0),
+                               Part = isnull((Select DISTINCT Part_Sub from ZDetailSsubTbl 
+                                              where shopid = Main.shopid and Stage_No = Main.Stage_No and Part_Sub = 1), 0),
+                                Part_Phenomena = ISNULL((SELECT SUM(Part_Phenomena_Sub) FROM ZDetailSsubTbl WHERE shopid = Main.shopid AND Stage_No = Main.Stage_No and Part_Sub = 1), 0),
+                                Part_Total_Vechicle = ISNULL((SELECT SUM(Part_Total_Vechicle_Sub) FROM ZDetailSsubTbl WHERE shopid = Main.shopid AND Stage_No = Main.Stage_No and Part_Sub = 1), 0),
+                                Design = isnull((Select DISTINCT Design_Sub from ZDetailSsubTbl 
+                                              where shopid = Main.shopid and Stage_No = Main.Stage_No and Design_Sub = 1), 0),
+                                Design_Phenomena = ISNULL((SELECT SUM(Design_Phenomena_Sub) FROM ZDetailSsubTbl WHERE shopid = Main.shopid AND Stage_No = Main.Stage_No and Design_Sub = 1), 0),
+                                Design_Total_Vechicle = ISNULL((SELECT SUM(Design_Total_Vechicle_Sub) FROM ZDetailSsubTbl WHERE shopid = Main.shopid AND Stage_No = Main.Stage_No and Design_Sub = 1), 0),
+                               U_A = isnull((Select DISTINCT U_A_Sub from ZDetailSsubTbl 
+                                              where shopid = Main.shopid and Stage_No = Main.Stage_No and U_A_Sub = 1), 0),
+                                U_A_Phenomena = ISNULL((SELECT SUM(U_A_Phenomena_Sub) FROM ZDetailSsubTbl WHERE shopid = Main.shopid AND Stage_No = Main.Stage_No and U_A_Sub = 1), 0),
+                                U_A_Total_Vechicle = ISNULL((SELECT SUM(U_A_Total_Vechicle_Sub) FROM ZDetailSsubTbl WHERE shopid = Main.shopid AND Stage_No = Main.Stage_No and U_A_Sub = 1), 0),
+                                Phen_OCC, 
+                                WHF, 
+                                Z_Stage, 
+                                E_Stage, 
+                                Status, 
+                                shopid
+                            FROM ZDetailsMainTbl AS Main
+                            WHERE shopid = 13";
+
+
+
+                    using (SqlCommand command = new SqlCommand(query, connection))
+                    {
+                        using (SqlDataReader reader = command.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                var detail = new ZDetailsMain
+                                {
+                                    Sr = reader["Stage_No"] != DBNull.Value ? Convert.ToInt32(reader["Stage_No"]) : 0, // Default value if DBNull
+                                    Model = reader["Model"]?.ToString(), // Null-conditional operator
+                                    Stage_No = reader["Stage_No"]?.ToString(),
+                                    Stage_Description = reader["Stage_Description"]?.ToString(),
+                                    D_data = reader["D_data"]?.ToString(),
+                                    P_data = reader["P_data"]?.ToString(),
+                                    U_data = reader["U_data"]?.ToString(),
+                                    M_data = reader["M_data"]?.ToString(),
+                                    MGF = reader["MGF"] != DBNull.Value && Convert.ToInt32(reader["MGF"]) == 1,
+                                    MGF_Phenomena = reader["MGF_Phenomena"] != DBNull.Value ? Convert.ToInt32(reader["MGF_Phenomena"]) : 0,
+                                    MGF_Total_Vechicle = reader["MGF_Total_Vechicle"] != DBNull.Value ? Convert.ToInt32(reader["MGF_Total_Vechicle"]) : 0,
+                                    Part = reader["Part"] != DBNull.Value && Convert.ToInt32(reader["Part"]) == 1,
+                                    Part_Phenomena = reader["Part_Phenomena"] != DBNull.Value ? Convert.ToInt32(reader["Part_Phenomena"]) : 0,
+                                    Part_Total_Vechicle = reader["Part_Total_Vechicle"] != DBNull.Value ? Convert.ToInt32(reader["Part_Total_Vechicle"]) : 0,
+                                    Design = reader["Design"] != DBNull.Value && Convert.ToInt32(reader["Design"]) == 1,
+                                    Design_Phenomena = reader["Design_Phenomena"] != DBNull.Value ? Convert.ToInt32(reader["Design_Phenomena"]) : 0,
+                                    Design_Total_Vechicle = reader["Design_Total_Vechicle"] != DBNull.Value ? Convert.ToInt32(reader["Design_Total_Vechicle"]) : 0,
+                                    U_A = reader["U_A"] != DBNull.Value && Convert.ToInt32(reader["U_A"]) == 1,
+                                    U_A_Phenomena = reader["U_A_Phenomena"] != DBNull.Value ? Convert.ToInt32(reader["U_A_Phenomena"]) : 0,
+                                    U_A_Total_Vechicle = reader["U_A_Total_Vechicle"] != DBNull.Value ? Convert.ToInt32(reader["U_A_Total_Vechicle"]) : 0,
+                                    Phen_OCC = reader["Phen_OCC"] != DBNull.Value && Convert.ToInt32(reader["Phen_OCC"]) == 1,
+                                    WHF = reader["WHF"] != DBNull.Value && Convert.ToInt32(reader["WHF"]) == 1,
+                                    Z_Stage = reader["Z_Stage"] != DBNull.Value && Convert.ToInt32(reader["Z_Stage"]) == 1,
+                                    E_Stage = reader["E_Stage"] != DBNull.Value && Convert.ToInt32(reader["E_Stage"]) == 1,
+                                    Status = reader["Status"] != DBNull.Value && Convert.ToInt32(reader["Status"]) == 1,
+                                };
+
+                                zdetails.Add(detail);
+                            }
+                        }
+                    }
+                }
+
+                var jsonSerializer = new JavaScriptSerializer();
+                var jsonResult = jsonSerializer.Serialize(zdetails);
+
+                return Content(jsonResult, "application/json");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine("Error: " + ex.Message);
+                return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, "An error occurred while processing your request.");
+            }
+        }
+
+
+        //public ActionResult Scorpio_Z_StagesJSON()
+        //{
+        //    try
+        //    {
+        //        if (TempData["globalData"] != null)
+        //        {
+        //            globalData = (GlobalData)TempData["globalData"];
+        //        }
+
+        //        globalData.pageTitle = "ZDetails";
+        //        globalData.subTitle = ResourceGlobal.Lists;
+        //        globalData.controllerName = "ZDetails";
+        //        globalData.actionName = ResourceGlobal.Lists;
+
+
+        //        // List to store the details
+        //        var zdetails = new List<ZDetailsMain>();
+
+        //        using (SqlConnection connection = new SqlConnection(connectionString))
+        //        {
+        //            connection.Open();
+        //            string query = @"SELECT 
+        //                            A.Stage_No,
+        //                            Model,
+        //                            Stage_Description,
+        //                            Status,
+        //                            B.MGF_Phenomena,
+        //                            B.MGF_Total_Vechicle,
+        //                            B.Part_Phenomena,
+        //                            B.Part_Total_Vechicle,
+        //                            B.Design_Phenomena,
+        //                            B.Design_Total_Vechicle,
+        //                            B.U_A_Phenomena,
+        //                            B.U_A_Total_Vechicle,
+        //                            A.Phen_OCC,
+        //                            A.WHF,
+        //                            A.Z_Stage,
+        //                            A.E_Stage,
+        //                            A.P_data,
+        //                            A.D_data,
+        //                            A.U_data,
+        //                            A.M_data,
+        //                            B.MGF_Sub as MGF
+        //                        FROM
+        //                            ZDetailsMainTbl A
+        //                        JOIN(
+        //                            SELECT
+        //                                zs.Stage_No,
+        //                                SUM(zs.MGF_Phenomena_Sub) AS MGF_Phenomena,
+        //                                SUM(zs.MGF_Total_Vechicle_Sub) AS MGF_Total_Vechicle,
+        //                                SUM(zs.Part_Phenomena_Sub) AS Part_Phenomena,
+        //                                SUM(zs.Part_Total_Vechicle_Sub) AS Part_Total_Vechicle,
+        //                                SUM(zs.Design_Phenomena_Sub) AS Design_Phenomena,
+        //                                SUM(zs.Design_Total_Vechicle_Sub) AS Design_Total_Vechicle,
+        //                                SUM(zs.U_A_Phenomena_Sub) AS U_A_Phenomena,
+        //                                SUM(zs.U_A_Total_Vechicle_Sub) AS U_A_Total_Vechicle
+        //                            FROM
+        //                                ZDetailsMainTbl zm
+        //                            JOIN
+        //                                ZDetailSsubTbl zs
+        //                            ON
+        //                                zm.Stage_No = zs.Stage_No
+        //                            GROUP BY
+        //                                zs.Stage_No
+        //                        ) B
+        //                        ON
+        //                            A.Stage_No = B.Stage_No
+        //                        WHERE
+        //                            A.Model = 'Scorpio TCF'";
+
+
+        //            using (SqlCommand command = new SqlCommand(query, connection))
+        //            {
+        //                using (SqlDataReader reader = command.ExecuteReader())
+        //                {
+        //                    while (reader.Read())
+        //                    {
+        //                        var detail = new ZDetailsMain
+        //                        {
+        //                            Sr = reader["Stage_No"] != DBNull.Value ? Convert.ToInt32(reader["Stage_No"]) : 0, // Default value if DBNull
+        //                            Model = reader["Model"]?.ToString(), // Null-conditional operator
+        //                            Stage_No = reader["Stage_No"]?.ToString(),
+        //                            Stage_Description = reader["Stage_Description"]?.ToString(),
+        //                            D_data = reader["D_data"]?.ToString(),
+        //                            P_data = reader["P_data"]?.ToString(),
+        //                            U_data = reader["U_data"]?.ToString(),
+        //                            M_data = reader["M_data"]?.ToString(),
+        //                            MGF = reader["MGF"] != DBNull.Value && Convert.ToInt32(reader["MGF"]) == 1,
+        //                            MGF_Phenomena = reader["MGF_Phenomena"] != DBNull.Value ? Convert.ToInt32(reader["MGF_Phenomena"]) : 0,
+        //                            MGF_Total_Vechicle = reader["MGF_Total_Vechicle"] != DBNull.Value ? Convert.ToInt32(reader["MGF_Total_Vechicle"]) : 0,
+        //                            Part = reader["Part"] != DBNull.Value && Convert.ToInt32(reader["Part"]) == 1,
+        //                            Part_Phenomena = reader["Part_Phenomena"] != DBNull.Value ? Convert.ToInt32(reader["Part_Phenomena"]) : 0,
+        //                            Part_Total_Vechicle = reader["Part_Total_Vechicle"] != DBNull.Value ? Convert.ToInt32(reader["Part_Total_Vechicle"]) : 0,
+        //                            Design = reader["Design"] != DBNull.Value && Convert.ToInt32(reader["Design"]) == 1,
+        //                            Design_Phenomena = reader["Design_Phenomena"] != DBNull.Value ? Convert.ToInt32(reader["Design_Phenomena"]) : 0,
+        //                            Design_Total_Vechicle = reader["Design_Total_Vechicle"] != DBNull.Value ? Convert.ToInt32(reader["Design_Total_Vechicle"]) : 0,
+        //                            U_A = reader["U_A"] != DBNull.Value && Convert.ToInt32(reader["U_A"]) == 1,
+        //                            U_A_Phenomena = reader["U_A_Phenomena"] != DBNull.Value ? Convert.ToInt32(reader["U_A_Phenomena"]) : 0,
+        //                            U_A_Total_Vechicle = reader["U_A_Total_Vechicle"] != DBNull.Value ? Convert.ToInt32(reader["U_A_Total_Vechicle"]) : 0,
+        //                            Phen_OCC = reader["Phen_OCC"] != DBNull.Value && Convert.ToInt32(reader["Phen_OCC"]) == 1,
+        //                            WHF = reader["WHF"] != DBNull.Value && Convert.ToInt32(reader["WHF"]) == 1,
+        //                            Z_Stage = reader["Z_Stage"] != DBNull.Value && Convert.ToInt32(reader["Z_Stage"]) == 1,
+        //                            E_Stage = reader["E_Stage"] != DBNull.Value && Convert.ToInt32(reader["E_Stage"]) == 1,
+        //                            Status = reader["Status"] != DBNull.Value && Convert.ToInt32(reader["Status"]) == 1,
+        //                        };
+
+        //                        zdetails.Add(detail);
+        //                    }
+        //                }
+        //            }
+        //        }
+
+        //        var jsonSerializer = new JavaScriptSerializer();
+        //        var jsonResult = jsonSerializer.Serialize(zdetails);
+
+        //        return Content(jsonResult, "application/json");
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        System.Diagnostics.Debug.WriteLine("Error: " + ex.Message);
+        //        return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, "An error occurred while processing your request.");
+        //    }
+        //}
+
+
+
+        [HttpGet]
+        public ActionResult Scorpio_Edit(int? id)
+        {
+
+            globalData.pageTitle = "Z-Details Update";
+            globalData.subTitle = ResourceGlobal.Lists;
+            globalData.controllerName = "ZDetails";
+            globalData.actionName = ResourceGlobal.Lists;
+
+
+
+            if (id == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+
+            ZDetailsMain zdetails = null;
+
+            string queryMain = "SELECT * FROM ZDetailsMainTbl WHERE Stage_No =" + id;
+
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                SqlCommand command = new SqlCommand(queryMain, connection);
+                command.Parameters.AddWithValue("@Id", id);
+
+                connection.Open();
+                SqlDataReader reader = command.ExecuteReader();
+
+                if (reader.Read())
+                {
+                    zdetails = new ZDetailsMain
+                    {
+                        Sr = reader["Stage_No"] != DBNull.Value ? Convert.ToInt32(reader["Stage_No"]) : 0, // Default value if DBNull
+                        Model = reader["Model"]?.ToString(), // Null-conditional operator
+                        Stage_No = reader["Stage_No"]?.ToString(),
+                        Stage_Description = reader["Stage_Description"]?.ToString(),
+                        D_data = reader["D_data"]?.ToString(),
+                        P_data = reader["P_data"]?.ToString(),
+                        U_data = reader["U_data"]?.ToString(),
+                        M_data = reader["M_data"]?.ToString(),
+                        MGF = reader["MGF"] != DBNull.Value && Convert.ToInt32(reader["MGF"]) == 1,
+                        MGF_Phenomena = reader["MGF_Phenomena"] != DBNull.Value ? Convert.ToInt32(reader["MGF_Phenomena"]) : 0,
+                        MGF_Total_Vechicle = reader["MGF_Total_Vechicle"] != DBNull.Value ? Convert.ToInt32(reader["MGF_Total_Vechicle"]) : 0,
+                        Part = reader["Part"] != DBNull.Value && Convert.ToInt32(reader["Part"]) == 1,
+                        Part_Phenomena = reader["Part_Phenomena"] != DBNull.Value ? Convert.ToInt32(reader["Part_Phenomena"]) : 0,
+                        Part_Total_Vechicle = reader["Part_Total_Vechicle"] != DBNull.Value ? Convert.ToInt32(reader["Part_Total_Vechicle"]) : 0,
+                        Design = reader["Design"] != DBNull.Value && Convert.ToInt32(reader["Design"]) == 1,
+                        Design_Phenomena = reader["Design_Phenomena"] != DBNull.Value ? Convert.ToInt32(reader["Design_Phenomena"]) : 0,
+                        Design_Total_Vechicle = reader["Design_Total_Vechicle"] != DBNull.Value ? Convert.ToInt32(reader["Design_Total_Vechicle"]) : 0,
+                        U_A = reader["U_A"] != DBNull.Value && Convert.ToInt32(reader["U_A"]) == 1,
+                        U_A_Phenomena = reader["U_A_Phenomena"] != DBNull.Value ? Convert.ToInt32(reader["U_A_Phenomena"]) : 0,
+                        U_A_Total_Vechicle = reader["U_A_Total_Vechicle"] != DBNull.Value ? Convert.ToInt32(reader["U_A_Total_Vechicle"]) : 0,
+                        Phen_OCC = reader["Phen_OCC"] != DBNull.Value && Convert.ToInt32(reader["Phen_OCC"]) == 1,
+                        WHF = reader["WHF"] != DBNull.Value && Convert.ToInt32(reader["WHF"]) == 1,
+                        Z_Stage = reader["Z_Stage"] != DBNull.Value && Convert.ToInt32(reader["Z_Stage"]) == 1,
+                        Status = reader["Status"] != DBNull.Value && Convert.ToInt32(reader["Status"]) == 1,
+
+                    };
+                }
+                reader.Close();
+            }
+
+            if (zdetails == null)
+            {
+                return HttpNotFound();
+            }
+
+            return View(zdetails);
+        }
+
+
+
+
+
+
+
+
+
+        [HttpGet]
+        public ActionResult CreateScorpio()
+        {
+            int plantID = ((FDSession)this.Session["FDSession"]).plantId;
+
+            ViewBag.Shop_ID = new SelectList(db.MM_Shops.Where(s => s.Plant_ID == plantID), "Shop_ID", "Shop_Name");
+
+            globalData.pageTitle = "Scorpio ZDetails";
+            globalData.subTitle = ResourceGlobal.Create;
+            globalData.controllerName = "ZDetails";
+            globalData.actionName = ResourceGlobal.Create;
+            return View();
+        }
+
+
+        [HttpPost]
+        public ActionResult CreateScorpio(ZDetailsSub zdetails, HttpPostedFileBase file, HttpPostedFileBase file1, HttpPostedFileBase file2)
+        {
+            string id = Session["stageno"] as string;
+
+
+            string NcfDocumentHexString = null;
+            string DcpDocumentHexString = null;
+            string EightDDocBinHexString = null;
+            string NcfDocumentExtension = null;
+            string DcpDocumentExtension = null;
+            string EightDDocBinExtension = null;
+
+
+            if (file != null && file.ContentLength > 0)
+            {
+
+                NcfDocumentExtension = Path.GetExtension(file.FileName);
+                using (var binaryReader = new BinaryReader(file.InputStream))
+                {
+                    byte[] fileBytes = binaryReader.ReadBytes(file.ContentLength);
+                    NcfDocumentHexString = ByteArrayToHexString(fileBytes);
+                }
+            }
+
+
+            //===========================for file 1==============================
+
+            if (file1 != null && file1.ContentLength > 0)
+            {
+
+                DcpDocumentExtension = Path.GetExtension(file1.FileName);
+                using (var binaryReader = new BinaryReader(file1.InputStream))
+                {
+                    byte[] fileBytes = binaryReader.ReadBytes(file1.ContentLength);
+                    DcpDocumentHexString = ByteArrayToHexString(fileBytes);
+                }
+            }
+
+            //===========================for file 2==============================
+
+            if (file2 != null && file2.ContentLength > 0)
+            {
+
+                EightDDocBinExtension = Path.GetExtension(file2.FileName);
+                using (var binaryReader = new BinaryReader(file2.InputStream))
+                {
+                    byte[] fileBytes = binaryReader.ReadBytes(file2.ContentLength);
+                    EightDDocBinHexString = ByteArrayToHexString(fileBytes);
+                }
+            }
+
+
+            string query = null;
+
+            if (file != null || file1 != null || file2 != null)
+            {
+                query = "INSERT INTO ZDetailssubTbl (Stage_No, Field_Concern_Details, Date_of_incidence, Root_Cause, Attribution, Action_plan, Stage_Observations, Concern_Status, Remark, NC, NcfDocument, NcfExtension ,Process_Audit_Status,DcpDocument,DcpExtension,EightDDocBin,EightDDocBin_Extension, layred_Audit,model,Type,shopid,MGF_Sub,MGF_Phenomena_Sub,MGF_Total_Vechicle_Sub,Part_Sub,Part_Phenomena_Sub,Part_Total_Vechicle_Sub,Design_Sub,Design_Phenomena_Sub,Design_Total_Vechicle_Sub,U_A_Sub,U_A_Phenomena_Sub,U_A_Total_Vechicle_Sub) " +
+                 "VALUES (" +
+                 (id != null ? "'" + id + "'" : "NULL") + ", " +
+                 (zdetails.Field_Concern_Details != null ? "'" + zdetails.Field_Concern_Details + "'" : "NULL") + ", " +
+                 (zdetails.Date_of_incidence.HasValue ? "'" + zdetails.Date_of_incidence.Value.ToString("yyyy-MM-dd") + "'" : "NULL") + ", " +
+                 (zdetails.Root_Cause != null ? "'" + zdetails.Root_Cause + "'" : "NULL") + ", " +
+                 (zdetails.Attribution != null ? "'" + zdetails.Attribution + "'" : "NULL") + ", " +
+                 (zdetails.Action_plan != null ? "'" + zdetails.Action_plan + "'" : "NULL") + ", " +
+                 (zdetails.Stage_Observations != null ? "'" + zdetails.Stage_Observations + "'" : "NULL") + ", " +
+                 (zdetails.Concern_Status != null ? "'" + zdetails.Concern_Status + "'" : "NULL") + ", " +
+                 (zdetails.Remark != null ? "'" + zdetails.Remark + "'" : "NULL") + ", " +
+                 (zdetails.NC != null ? "'" + zdetails.NC + "'" : "NULL") + ", " +
+                 (NcfDocumentHexString != null ? "0x" + NcfDocumentHexString : "NULL") + ", " +
+                 (string.IsNullOrEmpty(NcfDocumentExtension) ? "'.pdf'" : "'" + NcfDocumentExtension + "'") + ", " +
+                 (zdetails.Process_Audit_Status != null ? "'" + zdetails.Process_Audit_Status + "'" : "NULL") + ", " +
+                 (DcpDocumentHexString != null ? "0x" + DcpDocumentHexString : "NULL") + ", " +
+                 (string.IsNullOrEmpty(DcpDocumentExtension) ? "'.pdf'" : "'" + DcpDocumentExtension + "'") + ", " +
+                 (EightDDocBinHexString != null ? "0x" + EightDDocBinHexString : "NULL") + ", " +
+                 (string.IsNullOrEmpty(EightDDocBinExtension) ? "'.pdf'" : "'" + EightDDocBinExtension + "'") + ", " +
+                 (zdetails.layred_Audit != null ? "'" + zdetails.layred_Audit + "'" : "NULL") + "," +
+                 (zdetails.model != null ? "'" + zdetails.model + "'" : "NULL") + "," +
+                 "'Scorpio' ," +
+                 "'13' ," +
+                 (zdetails.MGF_Sub != null ? "'" + zdetails.MGF_Sub + "'" : "NULL") + ", " +
+                (zdetails.MGF_Phenomena_Sub != null ? "'" + zdetails.MGF_Phenomena_Sub + "'" : "NULL") + ", " +
+                (zdetails.MGF_Total_Vechicle_Sub != null ? "'" + zdetails.MGF_Total_Vechicle_Sub + "'" : "NULL") + ", " +
+                (zdetails.Part_Sub != null ? "'" + zdetails.Part_Sub + "'" : "NULL") + ", " +
+                (zdetails.Part_Phenomena_Sub != null ? "'" + zdetails.Part_Phenomena_Sub + "'" : "NULL") + ", " +
+                (zdetails.Part_Total_Vechicle_Sub != null ? "'" + zdetails.Part_Total_Vechicle_Sub + "'" : "NULL") + ", " +
+                (zdetails.Design_Sub != null ? "'" + zdetails.Design_Sub + "'" : "NULL") + ", " +
+                (zdetails.Design_Phenomena_Sub != null ? "'" + zdetails.Design_Phenomena_Sub + "'" : "NULL") + ", " +
+                (zdetails.Design_Total_Vechicle_Sub != null ? "'" + zdetails.Design_Total_Vechicle_Sub + "'" : "NULL") + ", " +
+                (zdetails.U_A_Sub != null ? "'" + zdetails.U_A_Sub + "'" : "NULL") + ", " +
+                (zdetails.U_A_Phenomena_Sub != null ? "'" + zdetails.U_A_Phenomena_Sub + "'" : "NULL") + ", " +
+                (zdetails.U_A_Total_Vechicle_Sub != null ? "'" + zdetails.U_A_Total_Vechicle_Sub + "'" : "NULL") +
+            ")";
+
+            }
+            else
+            {
+                query = "INSERT INTO ZDetailssubTbl (Stage_No, Field_Concern_Details, Date_of_incidence, Root_Cause, Attribution, Action_plan, Stage_Observations, Concern_Status, Remark, NC, Process_Audit_Status, layred_Audit,model,Type,shopid,MGF_Sub,MGF_Phenomena_Sub,MGF_Total_Vechicle_Sub,Part_Sub,Part_Phenomena_Sub,Part_Total_Vechicle_Sub,Design_Sub,Design_Phenomena_Sub,Design_Total_Vechicle_Sub,U_A_Sub,U_A_Phenomena_Sub,U_A_Total_Vechicle_Sub) " +
+                  "VALUES (" +
+                  (id != null ? "'" + id + "'" : "NULL") + ", " +
+                  (zdetails.Field_Concern_Details != null ? "'" + zdetails.Field_Concern_Details + "'" : "NULL") + ", " +
+                  (zdetails.Date_of_incidence.HasValue ? "'" + zdetails.Date_of_incidence.Value.ToString("yyyy-MM-dd") + "'" : "NULL") + ", " +
+                  (zdetails.Root_Cause != null ? "'" + zdetails.Root_Cause + "'" : "NULL") + ", " +
+                  (zdetails.Attribution != null ? "'" + zdetails.Attribution + "'" : "NULL") + ", " +
+                  (zdetails.Action_plan != null ? "'" + zdetails.Action_plan + "'" : "NULL") + ", " +
+                  (zdetails.Stage_Observations != null ? "'" + zdetails.Stage_Observations + "'" : "NULL") + ", " +
+                  (zdetails.Concern_Status != null ? "'" + zdetails.Concern_Status + "'" : "NULL") + ", " +
+                  (zdetails.Remark != null ? "'" + zdetails.Remark + "'" : "NULL") + ", " +
+                  (zdetails.NC != null ? "'" + zdetails.NC + "'" : "NULL") + ", " +
+                  (zdetails.Process_Audit_Status != null ? "'" + zdetails.Process_Audit_Status + "'" : "NULL") + ", " +
+                  (zdetails.layred_Audit != null ? "'" + zdetails.layred_Audit + "'" : "NULL") + "," +
+                  (zdetails.model != null ? "'" + zdetails.model + "'" : "NULL") + "," +
+                  "'Scorpio'," +
+                  "'13' ," +
+                    //(zdetails.MGF_Sub != null ? "'" + zdetails.MGF_Sub + "'" : "NULL") + ", " +
+                    (zdetails.MGF_Sub != null ? (zdetails.MGF_Sub ? "1" : "0") : "NULL") + ", " +
+
+                    (zdetails.MGF_Phenomena_Sub != null ? "'" + zdetails.MGF_Phenomena_Sub + "'" : "NULL") + ", " +
+                    (zdetails.MGF_Total_Vechicle_Sub != null ? "'" + zdetails.MGF_Total_Vechicle_Sub + "'" : "NULL") + ", " +
+                    //(zdetails.Part_Sub != null ? "'" + zdetails.Part_Sub + "'" : "NULL") + ", " +
+                    (zdetails.Part_Sub != null ? (zdetails.Part_Sub ? "1" : "0") : "NULL") + ", " +
+                    (zdetails.Part_Phenomena_Sub != null ? "'" + zdetails.Part_Phenomena_Sub + "'" : "NULL") + ", " +
+                    (zdetails.Part_Total_Vechicle_Sub != null ? "'" + zdetails.Part_Total_Vechicle_Sub + "'" : "NULL") + ", " +
+                    //(zdetails.Design_Sub != null ? "'" + zdetails.Design_Sub + "'" : "NULL") + ", " +
+                    (zdetails.Design_Sub != null ? (zdetails.Design_Sub ? "1" : "0") : "NULL") + ", " +
+
+                    (zdetails.Design_Phenomena_Sub != null ? "'" + zdetails.Design_Phenomena_Sub + "'" : "NULL") + ", " +
+                    (zdetails.Design_Total_Vechicle_Sub != null ? "'" + zdetails.Design_Total_Vechicle_Sub + "'" : "NULL") + ", " +
+                    //(zdetails.U_A_Sub != null ? "'" + zdetails.U_A_Sub + "'" : "NULL") + ", " +
+                    (zdetails.U_A_Sub != null ? (zdetails.U_A_Sub ? "1" : "0") : "NULL") + ", " +
+
+                    (zdetails.U_A_Phenomena_Sub != null ? "'" + zdetails.U_A_Phenomena_Sub + "'" : "NULL") + ", " +
+                    (zdetails.U_A_Total_Vechicle_Sub != null ? "'" + zdetails.U_A_Total_Vechicle_Sub + "'" : "NULL") +
+            ")";
+
+            }
+
+
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                {
+                    try
+                    {
+                        conn.Open();
+                        cmd.ExecuteNonQuery();
+
+                        ViewBag.Title = "Scorpio_ZDetails";
+                        return RedirectToAction("ScorpioIndependentView", "ZDetails", new { id = id });
+                    }
+                    catch (Exception ex)
+                    {
+                        return Json(new { success = false, message = ex.Message });
+                    }
+                }
+            }
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        public class ZDetailsMain
+        {
+            public int Sr { get; set; }
+            public string Model { get; set; }
+            public string Stage_No { get; set; }
+            public string Stage_Description { get; set; }
+            public string D_data { get; set; }
+            public string P_data { get; set; }
+            public string pptupload { get; set; }
+            public string U_data { get; set; }
+            public string M_data { get; set; }
+            public bool MGF { get; set; }
+            public bool Part { get; set; }
+            public bool Design { get; set; }
+            public bool U_A { get; set; }
+            public bool Phen_OCC { get; set; }
+            public bool Z_Stage { get; set; }
+            public bool E_Stage { get; set; }
+            public bool WHF { get; set; }
+            public bool Status { get; set; }
+            public int MGF_Phenomena { get; set; }
+            public int MGF_Total_Vechicle { get; set; }
+            public int Part_Phenomena { get; set; }
+            public int Part_Total_Vechicle { get; set; }
+            public int Design_Phenomena { get; set; }
+            public int Design_Total_Vechicle { get; set; }
+            public int U_A_Phenomena { get; set; }
+            public int U_A_Total_Vechicle { get; set; }
+
+        }
+
+
+        public class ZDetailsSub
+        {
+
+            public string model { get; set; }
+            public string type { get; set; }
+            public int Sr { get; set; }
+            public string Stage_No { get; set; }
+            public string Field_Concern_Details { get; set; }
+            public DateTime? Date_of_incidence { get; set; }
+            public string Root_Cause { get; set; }
+            public string Attribution { get; set; }
+            public string Action_plan { get; set; }
+            public string Stage_Observations { get; set; }
+            public string Concern_Status { get; set; }
+            public string Documents_or_8D { get; set; }
+            public string Remark { get; set; }
+            public string NC { get; set; }
+            public bool Status { get; set; }
+            public string Process_Audit_Status { get; set; }
+            public string layred_Audit { get; set; }
+            public byte[] NCS_OFI { get; set; }
+            public byte[] EightDPager { get; set; }
+            public byte[] DCP { get; set; }
+
+            public bool MGF_Sub { get; set; }
+            public int MGF_Phenomena_Sub { get; set; }
+            public int MGF_Total_Vechicle_Sub { get; set; }
+
+            public bool Part_Sub { get; set; }
+            public int Part_Phenomena_Sub { get; set; }
+            public int Part_Total_Vechicle_Sub { get; set; }
+
+            public bool Design_Sub { get; set; }
+            public int Design_Phenomena_Sub { get; set; }
+            public int Design_Total_Vechicle_Sub { get; set; }
+
+
+            public bool U_A_Sub { get; set; }
+            public int U_A_Phenomena_Sub { get; set; }
+            public int U_A_Total_Vechicle_Sub { get; set; }
+
+
+
+
+
+
+
+
+
+
+        }
+
+        //================================scorpio=======================================================
+
+        public class ZDetailsMain_Scorpio
+        {
+            public int Sr { get; set; }
+            public string Model { get; set; }
+            public string Stage_No { get; set; }
+            public string Stage_Description { get; set; }
+            public string D_data { get; set; }
+            public string P_data { get; set; }
+            public string pptupload { get; set; }
+            public string U_data { get; set; }
+            public string M_data { get; set; }
+            public bool MGF { get; set; }
+            public bool Part { get; set; }
+            public bool Design { get; set; }
+            public bool U_A { get; set; }
+            public bool Phen_OCC { get; set; }
+            public bool Z_Stage { get; set; }
+            public bool WHF { get; set; }
+            public bool Status { get; set; }
+            public int MGF_Phenomena { get; set; }
+            public int MGF_Total_Vechicle { get; set; }
+            public int Part_Phenomena { get; set; }
+            public int Part_Total_Vechicle { get; set; }
+            public int Design_Phenomena { get; set; }
+            public int Design_Total_Vechicle { get; set; }
+            public int U_A_Phenomena { get; set; }
+            public int U_A_Total_Vechicle { get; set; }
+        }
+
+
+        public class ZDetailsSub_Scorpio
+        {
+            public int Sr { get; set; }
+            public string Stage_No { get; set; }
+            public string Field_Concern_Details { get; set; }
+            public DateTime? Date_of_incidence { get; set; }
+            public string Root_Cause { get; set; }
+            public string Attribution { get; set; }
+            public string Action_plan { get; set; }
+            public string Stage_Observations { get; set; }
+            public string Concern_Status { get; set; }
+            public string Documents_or_8D { get; set; }
+            public string Remark { get; set; }
+            public string NC { get; set; }
+            public bool Status { get; set; }
+            public string Process_Audit_Status { get; set; }
+            public string layred_Audit { get; set; }
+            public byte[] NCS_OFI { get; set; }
+            public byte[] EightDPager { get; set; }
+            public byte[] DCP { get; set; }
+        }
+
+    }
+}
+
+//-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+
+@model Mahindra_AD.Controllers.ZDetailsController.ZDetailsSub
+@using Mahindra_AD.App_LocalResources;
+@{
+    // Retrieve the session value
+    var idFromSession = Session["stageno"] as string;
+}
+@{
+    /**/
+
+    ViewBag.Title = "Create";
+    Layout = "~/Views/Shared/admin/_Layout.cshtml";
+}
+<style>
+    #sucessMessage {
+        width: 15%;
+        position: absolute;
+        display: None;
+        justify-content: flex-start;
+        align-items: center;
+        padding: 10px 5px;
+        border-radius: 5px;
+        color: #fff;
+        font-weight: 900;
+        font-size: 2rem;
+        top: 10px;
+        right: 10px;
+        background: #5cb85c;
+    }
+
+    .form-control {
+        display: block;
+        width: 95%;
+        height: 34px;
+        padding: 6px 12px;
+        font-size: 14px;
+        line-height: 1.42857143;
+        color: #555;
+        background-color: #fff;
+        background-image: none;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        -webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.075);
+        box-shadow: inset 0 1px 1px rgba(0,0,0,.075);
+        -webkit-transition: border-color ease-in-out .15s,-webkit-box-shadow ease-in-out .15s;
+        -o-transition: border-color ease-in-out .15s,box-shadow ease-in-out .15s;
+        transition: border-color ease-in-out .15s,box-shadow ease-in-out .15s
+    }
+
+    .form-horizontal {
+        width: 95%;
+        margin: 0px auto;
+    }
+
+        .form-horizontal input {
+            width: 95%;
+            border-radius: 4px !important;
+        }
+
+        .form-horizontal .form-group {
+            margin-right: 0px !important;
+            margin-left: 0px !important;
+        }
+
+    .btn-grop {
+        display: flex;
+        justify-content: flex-start;
+    }
+
+    .form-group .submitBtn {
+        width: 20%;
+        margin-right: 15px;
+    }
+
+    .checkbox_xuv {
+        width: auto !important;
+        padding: 0px 20px;
+    }
+</style>
+
+<div style="max-width: 100%; margin:30px 30px;">
+    <div class="card shadow-sm">
+        <div>
+            <h2 style="font-weight: bold; margin-bottom:20px">ZDetails Stage: @idFromSession</h2>
+        </div>
+        <div class="card-body">
+            <div class="sucessMessage alert alert-success" id="sucessMessage" style="display:none;">
+                <i class="fa fa-check-circle" aria-hidden="true"></i>
+                <h5 style="display: inline;">&nbsp; Updated</h5>
+            </div>
+
+            @using (Html.BeginForm("CreateXUV", "ZDetails", FormMethod.Post, new { id = "editForm", enctype = "multipart/form-data" }))
+            {
+                @Html.AntiForgeryToken()
+
+                <!-- Row 1 -->
+                <div class="row mb-3">
+                    <div class="col-md-6 form-group">
+                        <label>Field Concern Details:</label>
+
+                        @Html.TextAreaFor(model => model.Field_Concern_Details, new { @class = "form-control", rows = 3, placeholder = "Field Concern Details" })
+                        @Html.ValidationMessageFor(model => model.Field_Concern_Details, "", new { @class = "text-danger" })
+                    </div>
+                    <div class="col-md-6 form-group">
+                        <label>Date Of Incidence:</label>
+
+                        @Html.TextBoxFor(model => model.Date_of_incidence, new { @class = "form-control", @type = "date", placeholder = "Select Date" })
+                        @Html.ValidationMessageFor(model => model.Date_of_incidence, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+
+
+
+                <div class="row mb-3" style="margin-bottom:2%">
+                    <div class="col-md-3">
+                        <label for="shop">Model</label>
+                        @Html.DropDownListFor(
+                            model => model.model,
+                            new List<SelectListItem>
+                            {
+                                new SelectListItem { Value = "", Text = "Select Model", Selected = true, Disabled = true },
+                                new SelectListItem { Value = "XUV 3XO", Text = "XUV 3XO" },
+                                //new SelectListItem { Value = "XUV 4OO", Text = "XUV 4OO" }
+                            },
+                            new { @class = "form-control", @id = "shop" }
+                        )
+                    </div>
+                </div>
+
+
+                <!-- Row 2 -->
+                <div class="row mb-3">
+                    <div class="col-md-6 form-group">
+                        <label>Root Cause:</label>
+
+                        @Html.TextAreaFor(model => model.Root_Cause, new { @class = "form-control", rows = 3, placeholder = "Enter Root Cause" })
+                        @Html.ValidationMessageFor(model => model.Root_Cause, "", new { @class = "text-danger" })
+                    </div>
+                    <div class="col-md-6 form-group">
+                        <label>Attribution:</label>
+
+                        @Html.TextAreaFor(model => model.Attribution, new { @class = "form-control", rows = 3, placeholder = "Attribution" })
+                        @Html.ValidationMessageFor(model => model.Attribution, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+
+                <!-- Row 3 -->
+                <div class="row mb-3">
+                    <div class="col-md-6 form-group">
+                        <label>Action Plan:</label>
+
+
+                        @Html.TextAreaFor(model => model.Action_plan, new { @class = "form-control", rows = 3, placeholder = "Action Plan" })
+                        @Html.ValidationMessageFor(model => model.Action_plan, "", new { @class = "text-danger" })
+                    </div>
+                    <div class="col-md-6 form-group">
+                        <label>Stage Observations:</label>
+
+
+                        @Html.TextAreaFor(model => model.Stage_Observations, new { @class = "form-control", rows = 3, placeholder = "Stage Observations" })
+                        @Html.ValidationMessageFor(model => model.Stage_Observations, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+
+                <!-- Row 4 -->
+                <div class="row mb-3">
+                    <div class="col-md-6 form-group">
+                        <label>Concern Status:</label>
+
+
+                        @Html.TextAreaFor(model => model.Concern_Status, new { @class = "form-control", rows = 3, placeholder = "Concern Status" })
+                        @Html.ValidationMessageFor(model => model.Concern_Status, "", new { @class = "text-danger" })
+                    </div>
+
+                    <div class="col-md-6 form-group">
+                        <label>Process Audit Status(N):</label>
+
+
+                        @Html.TextAreaFor(model => model.Process_Audit_Status, new { @class = "form-control", rows = 3, placeholder = "Process Audit Status" })
+                        @Html.ValidationMessageFor(model => model.Process_Audit_Status, "", new { @class = "text-danger" })
+                    </div>
+
+
+
+                </div>
+
+                <!-- Row 5 -->
+                <div class="row mb-3">
+                    <div class="col-md-6 form-group">
+                        <label>Layred Audit Status:</label>
+
+
+                        @Html.TextAreaFor(model => model.layred_Audit, new { @class = "form-control", rows = 3, placeholder = "Enter Remark" })
+                        @Html.ValidationMessageFor(model => model.layred_Audit, "", new { @class = "text-danger" })
+                    </div>
+
+                    <div class="col-md-6 form-group">
+                        <label>NC Remark:</label>
+
+                        @Html.TextAreaFor(model => model.NC, new { @class = "form-control", rows = 3, placeholder = "Enter NC Remark" })
+                        @Html.ValidationMessageFor(model => model.NC, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+
+                <div class="col-md-12">
+                    <div class="row">
+                        <div class="col-md-4 form-group">
+
+                            <label> <span style="background-color:deepskyblue;color:white;padding:5px;border-radius:6px;font-size:10px">Document</span> NCF OFI Closure: </label>
+                            <input type="file" name="file" class="form-control" aria-label="Upload Documents or 8D" />
+                        </div>
+
+                        <div class="col-md-4 form-group">
+
+                            <label> <span style="background-color:deepskyblue;color:white;padding:5px;border-radius:6px;font-size:10px">Document</span> 8D Pager(N): </label>
+                            <input type="file" name="file2" class="form-control" aria-label="Upload Documents or 8D" />
+                        </div>
+
+                        <div class="col-md-4 form-group">
+
+                            <label> <span style="background-color:deepskyblue;color:white;padding:5px;border-radius:6px;font-size:10px">Document</span> DCP Documents(N): </label>
+                            <input type="file" name="file1" class="form-control" aria-label="Upload Documents or 8D" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-12 form-group">
+                        <label>Remark:</label>
+                        @Html.TextAreaFor(model => model.Remark, new { @class = "form-control", rows = 3, placeholder = "Enter Remark" })
+                        @Html.ValidationMessageFor(model => model.Remark, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+
+
+
+                //--------------------------------New Requirment--------------------------
+
+
+
+
+
+                <div class="card ">
+
+                    <h3 style="font-size:2rem; font-weight:600">Stage Details:</h3>
+
+
+                    <div class="card-body" style="background-color: white;">
+
+                        <div class="row">
+
+                            <div class="col-9 form-group">
+                                <div class="row" style="margin-left:20px;">
+                                    <div class="col-md-3">
+
+                                        @Html.CheckBoxFor(model => model.MGF_Sub, new { htmlAttributes = new { @class = "form-control", @id = "chkMGF" } })
+                                        @Html.Label("MGF:", htmlAttributes: new { @class = "control-label font-weight-bold" })
+                                        @Html.ValidationMessageFor(model => model.MGF_Sub, "", new { @class = "text-danger", @id = "valMGF" })
+                                    </div>
+
+                                    <div id="MGFInputs" style="display:none;">
+                                        <div class="col-md-3">
+                                            @Html.Label("Phenomena:", htmlAttributes: new { @class = "control-label font-weight-bold" })
+                                            @Html.EditorFor(model => model.MGF_Phenomena_Sub, new { htmlAttributes = new { @class = "form-control", @id = "txtMGF_Phenomena" } })
+                                            @Html.ValidationMessageFor(model => model.MGF_Phenomena_Sub, "", new { @class = "text-danger", @id = "valMGF_Phenomena" })
+                                        </div>
+                                        <div class="col-md-3">
+                                            @Html.Label("Total Vechicle:", htmlAttributes: new { @class = "control-label font-weight-bold" })
+
+                                            @Html.EditorFor(model => model.MGF_Total_Vechicle_Sub, new { htmlAttributes = new { @class = "form-control", @id = "txtMGF_Total_Vehicle" } })
+                                            @Html.ValidationMessageFor(model => model.MGF_Total_Vechicle_Sub, "", new { @class = "text-danger", @id = "valMGF_Total_Vehicle" })
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <hr />
+
+
+                            
+
+                            <div class="col-9 form-group">
+                                <div class="row" style="margin-left:20px;">
+                                    <div class="col-md-3">
+
+                                        @Html.CheckBoxFor(model => model.Design_Sub, new { htmlAttributes = new { @class = "form-control", @id = "chkMGF" } })
+                                        @Html.Label("Design:", htmlAttributes: new { @class = "control-label font-weight-bold" })
+                                        @Html.ValidationMessageFor(model => model.Design_Sub, "", new { @class = "text-danger", @id = "valMGF" })
+                                    </div>
+
+                                    <div id="DesignInputs" style="display:none;">
+                                        <div class="col-md-3">
+                                            @Html.Label("Phenomena:", htmlAttributes: new { @class = "control-label font-weight-bold" })
+
+                                            @Html.EditorFor(model => model.Design_Phenomena_Sub, new { htmlAttributes = new { @class = "form-control", @id = "txtMGF_Phenomena" } })
+                                            @Html.ValidationMessageFor(model => model.Design_Phenomena_Sub, "", new { @class = "text-danger", @id = "valMGF_Phenomena" })
+                                        </div>
+                                        <div class="col-md-3">
+                                            @Html.Label("Total Vechicle:", htmlAttributes: new { @class = "control-label font-weight-bold" })
+                                            @Html.EditorFor(model => model.Design_Total_Vechicle_Sub, new { htmlAttributes = new { @class = "form-control", @id = "txtMGF_Total_Vehicle" } })
+                                            @Html.ValidationMessageFor(model => model.Design_Total_Vechicle_Sub, "", new { @class = "text-danger", @id = "valMGF_Total_Vehicle" })
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <hr />
+
+                            <div class="col-9 form-group">
+                                <div class="row" style="margin-left:20px;">
+                                    <div class="col-md-3">
+
+
+                                        @Html.CheckBoxFor(model => model.U_A_Sub, new { htmlAttributes = new { @class = "form-control", @id = "chkMGF" } })
+                                        @Html.Label("U_A:", htmlAttributes: new { @class = "control-label font-weight-bold" })
+                                        @Html.ValidationMessageFor(model => model.U_A_Sub, "", new { @class = "text-danger", @id = "valMGF" })
+                                    </div>
+
+                                    <div id="UAInputs" style="display:none;">
+                                        <div class="col-md-3">
+                                            @Html.Label("Phenomena:", htmlAttributes: new { @class = "control-label font-weight-bold" })
+
+                                            @Html.EditorFor(model => model.U_A_Phenomena_Sub, new { htmlAttributes = new { @class = "form-control", @id = "txtMGF_Phenomena" } })
+                                            @Html.ValidationMessageFor(model => model.U_A_Phenomena_Sub, "", new { @class = "text-danger", @id = "valMGF_Phenomena" })
+                                        </div>
+                                        <div class="col-md-3">
+                                            @Html.Label("Total Vechicle:", htmlAttributes: new { @class = "control-label font-weight-bold" })
+                                            @Html.EditorFor(model => model.U_A_Total_Vechicle_Sub, new { htmlAttributes = new { @class = "form-control", @id = "txtMGF_Total_Vehicle" } })
+                                            @Html.ValidationMessageFor(model => model.U_A_Total_Vechicle_Sub, "", new { @class = "text-danger", @id = "valMGF_Total_Vehicle" })
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <hr />
+
+
+                        </div>
+                    </div>
+                </div>
+
+
+
+
+                <!-- Submit Buttons -->
+                <div class="form-group row">
+                    <div class="col-md-12 ">
+                        <a href="/ZDetails" class="btn btn-primary submitBtn" style="width:100px;">Show All</a>
+                        <input type="submit" value="Submit" id="saveButton" class="btn btn-success submitBtn" style="width:100px;" />
+                        <button type="button" value="Refresh" class="btn btn-secondary submitBtn" onclick="Refresh()" style="width:100px;">Refresh</button>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+
+
+
+<script>
+    function Refresh() {
+        window.location.reload();
+    }
+</script>
+<script>
+function showToast(message, type) {
+    var toast = document.createElement('div');
+    toast.className = 'toast ' + type;
+    toast.innerText = message;
+    document.body.appendChild(toast);
+
+    $(toast).fadeIn(400).delay(3000).fadeOut(400, function () {
+        document.body.removeChild(toast);
+    });
+}
+
+$(document).ready(function () {
+    $('#XUV_ZDEtails_Form').submit(function (e) {
+        e.preventDefault();
+
+        $.ajax({
+            type: 'POST',
+            url: '@Url.Action("Create_XUV", "ZDetails")',
+            data: $(this).serialize(),
+            success: function (response) {
+                if (response.success) {
+                    showToast('Data saved successfully!', 'success');
+                    Refresh();
+                } else {
+                    showToast('Failed to save data: ' + response.message, 'error');
+                }
+            },
+            error: function () {
+                showToast('An error occurred while processing your request.', 'error');
+            }
+        });
+    });
+});
+</script>
+<style>
+    .toast {
+        position: fixed;
+        top: 70px;
+        right: 20px;
+        background-color: #333;
+        color: #fff;
+        padding: 20px 35px;
+        border-radius: 5px;
+        z-index: 1000;
+        font-weight: 800;
+        display: none;
+    }
+
+        .toast.success {
+            background-color: #4caf50;
+        }
+
+        .toast.error {
+            background-color: #f44336;
+        }
+</style>
+
+
+
+<script>
+    $(document).ready(function () {
+        debugger
+
+        $('#MGF_Sub').change(function () {
+            if ($(this).is(':checked')) {
+                $('#MGFInputs').show();
+            } else {
+                $('#MGFInputs').hide();
+            }
+        });
+
+        if ($('#MGF').is(':checked')) {
+            $('#MGFInputs').show();
+        } else {
+            $('#MGFInputs').hide();
+        }
+
+
+
+
+
+        $('#Part_Sub').change(function () {
+            debugger;
+            if ($(this).is(':checked')) {
+                $('#PartInputs').show();
+            } else {
+                $('#PartInputs').hide();
+            }
+        });
+
+
+
+
+        if ($('#Part').is(':checked')) {
+            $('#PartInputs').show();
+        } else {
+            $('#PartInputs').hide();
+        }
+
+
+
+        $('#Design_Sub').change(function () {
+            if ($(this).is(':checked')) {
+                $('#DesignInputs').show();
+            } else {
+                $('#DesignInputs').hide();
+            }
+        });
+
+
+
+        if ($('#Design').is(':checked')) {
+            $('#DesignInputs').show();
+        } else {
+            $('#DesignInputs').hide();
+        }
+
+
+
+
+        $('#U_A_Sub').change(function () {
+            if ($(this).is(':checked')) {
+                $('#UAInputs').show();
+            } else {
+                $('#UAInputs').hide();
+            }
+        });
+
+
+        if ($('#U_A').is(':checked')) {
+            $('#UAInputs').show();
+        } else {
+            $('#UAInputs').hide();
+        }
+
+    });
+</script>
+
+
+
+
+
+
+
+
+
+
