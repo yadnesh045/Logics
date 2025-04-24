@@ -1,0 +1,279 @@
+Row Visib
+NDF =iif(Not IsNothing(Fields!Row_ID.Value),TRUE,FALSE)
+Value ==iif(Not IsNothing(Fields!Row_ID.Value),FALSE,TRUE)
+ 
+conever single string into row - =REPLACE(Fields!TORQUEValue.Value, " | ", Environment.NewLine)
+ 
+Table Hide Show =iif(Parameters!Station_Name.Value="6MT Leak Test Station",false,true)
+ 
+	multiple =IIf(Parameters!Mashine.Value = "Brake Filling", True, 
+      		  IIf(Parameters!Mashine.Value = "Clucth Filling", True, 
+      		  IIf(Parameters!Mashine.Value  = "Transmission Filling", True, 
+       	          IIf(Parameters!Mashine.Value  = "Coolent Filling", True, 
+                  IIf(Parameters!Mashine.Value  = "Power Stering Filling", False, False)))))
+ 
+sr.no =RowNumber(nothing)   #384c70
+ 
+date =Format(Fields!Inserted_Date.Value, "yyyy-MM-dd HH:mm")  Query -- FORMAT(ms.Inserted_Date, 'HH:mm:ss') AS Time, WHERE your_date_column = CAST(GETDATE() AS DATE);
+ 
+status:- =IIf(ReportItems!Total_Count.Value =ReportItems!OK_Parts.Value ,"OK","NOK")
+ 
+percentage_=Round((Fields!OK_Parts.Value*100)/(Fields!Total_Count.Value),2) & "%"
+ 
+DateTimeFormat:-yyyy-MM-dd hh:mm:ss tt
+ 
+OK NOT OK =IIf(Fields!Defect_Status.Value = False, "OK","Not OK")
+ 
+Expretion Name in white report :- ="ADD Title Name: " + ExpretionF
+ 
+=Round((Sum(Fields!SCANNED.Value)/Sum(Fields!APPLICABLE.Value))*100,2)&"%"
+ 
+conversion -> From MIS as m where convert(date,InsertedDate)>= @StartDate1 and convert(date,InsertedDate) <=@EndDate1
+ 
+where convert(Datetime,ms.Inserted_Date)>=cast( @FromDate as datetime) and convert(Datetime,ms.Inserted_Date) <=cast(@ToDate as datetime)
+ 
+=iif(Not IsNothing(Fields!Platform_Name.Value),TRUE,FALSE)
+ 
+ 
+Color =IIF(Fields!Result.Value = "Pass OK", "Green","Red")
+ 
+=SWITCH(First(Fields!AllStatusOk.Value, "DataSet_HeadSubAssembly") = 1,"LimeGreen",First(Fields!AllStatusOk.Value, "DataSet_HeadSubAssembly") =2,"Tomato")
+=IIF(Fields> 0, "Path", Nothing)
+ 
+Multiple color in one chart 
+=Switch(
+    Fields!Category.Value = "Setup Change", "LightSteelBlue",
+    Fields!Category.Value = "Reason Not Available", "PaleTurquoise",
+    Fields!Category.Value = "Proccess", "LightGreen",
+    Fields!Category.Value = "Minor Stop Pages", "CornflowerBlue",
+    Fields!Category.Value = "Equipment", "LightSteelBlue",
+    Fields!Category.Value = "Die", "LightGrey",
+    True, "#00ffffff"
+)
+ 
+ 
+1. Using IsNothing with a Default Value:
+=IIF(IsNothing(First(Fields!No_OF_Joints_2.Value, "Pokayoke_Name7")), "Default Value", First(Fields!No_OF_Joints_2.Value, "Pokayoke_Name7"))
+ 
+2. Nested IIF Statements:
+=IIF(IsNothing(First(Fields!No_OF_Joints_2.Value, "Pokayoke_Name7")),"No Data",
+IIF(First(Fields!No_OF_Joints_2.Value, "Pokayoke_Name7") = "", "Empty", "Has Value"))
+ 
+3. Concatenating Fields:
+If you need to combine multiple fields or add static text to your output:
+=First(Fields!Field1.Value, "DatasetName") & " - " & First(Fields!Field2.Value, "DatasetName")
+ 
+4. Date Formatting:
+If you’re dealing with date fields and need to format them:
+=Format(First(Fields!DateField.Value, "DatasetName"), "MMMM dd, yyyy")
+ 
+5. Conditional Formatting in Text Boxes:
+You can apply conditional formatting to the color, font, or other properties based on field values:
+ 
+=IIF(First(Fields!Status.Value, "DatasetName") = "Completed", "Green", "Red")
+ 
+6. Using Lookup and LookupSet:
+If you need to retrieve values from another dataset in your report:
+=Lookup(Fields!ID.Value, Fields!ID.Value, Fields!Name.Value, "AnotherDatasetName")
+ 
+7. Handling Division by Zero:
+To avoid errors when dividing numbers, check for zero:
+=IIF(Fields!Denominator.Value = 0, 0, Fields!Numerator.Value / Fields!Denominator.Value)
+ 
+ 
+Report path =http://mvml-drnrs/DronaRep/Pages/ReportViewer.aspx?%2fTraceaibility+Report%2frpt_DateWise_Kitting_Report&rs:Command=Render
+ 
+ 
+ 
+/* Total percentage
+ 
+=IIf(
+    Fields!Paint_Kitting.Value > 0,  
+    IIf(
+        (Fields!Paint_Kitting.Value * 100) / Sum(Fields!Paint_Kitting.Value) > 100,
+        "100%",
+        Round((Fields!Paint_Kitting.Value * 100) / Sum(Fields!Paint_Kitting.Value), 2) & "%"
+    ),
+    "0%"
+)
+ 
+ 
+/////
+ 
+=IIf(
+   Fields!RH1_QDMS1.Value+Fields!LH1_QDMS1.Value+Fields!RH2_QDMS2.Value+Fields!LH2_QDMS2.Value+Fields!RH3_QualityGateway1.Value
++Fields!LH3_QDMS3.Value
++Fields!QualityGateway2.Value
++Fields!PDI.Value
++Fields!QualityGateway3.Value = 0, 
+    0, 
+    IIf(
+        (Fields!RH1_QDMS1.Value+Fields!LH1_QDMS1.Value+Fields!RH2_QDMS2.Value+Fields!LH2_QDMS2.Value+Fields!RH3_QualityGateway1.Value
++Fields!LH3_QDMS3.Value
++Fields!QualityGateway2.Value
++Fields!PDI.Value
++Fields!QualityGateway3.Value) * 100 /
+        Sum(Fields!Traceability_VIN_Count.Value) > 100,
+        100,
+        Round(
+           (Fields!RH1_QDMS1.Value+Fields!LH1_QDMS1.Value+Fields!RH2_QDMS2.Value+Fields!LH2_QDMS2.Value+Fields!RH3_QualityGateway1.Value
++Fields!LH3_QDMS3.Value
++Fields!QualityGateway2.Value
++Fields!PDI.Value
++Fields!QualityGateway3.Value) * 100 /
+        Sum(Fields!Traceability_VIN_Count.Value), 2
+        ) & "%"
+    )
+)& "%"
+ 
+ 
+*/
+
+
+
+
+
+
+
+//=======================================================================POP UP EXPRESSION 
+
+="javascript:void(window.open('http://mmptmrepsr/ReportServer/Pages/ReportViewer.aspx?%2fMTWD%2fSub_Report_Paint_Shop_Defect&rs:Command=Render&fromdate=" +Parameters!fromdate.Value+ "&todate=" +Parameters!todate.Value+"&defectid="+Fields!Defect_ID.Value', '_blank', 'resizable=1,ToolBarButtonsCell=1,status=1,menu=1,top=30,left=60,width=640,height=830'))"Row Visib
+NDF =iif(Not IsNothing(Fields!Row_ID.Value),TRUE,FALSE)
+Value ==iif(Not IsNothing(Fields!Row_ID.Value),FALSE,TRUE)
+ 
+conever single string into row - =REPLACE(Fields!TORQUEValue.Value, " | ", Environment.NewLine)
+ 
+Table Hide Show =iif(Parameters!Station_Name.Value="6MT Leak Test Station",false,true)
+ 
+	multiple =IIf(Parameters!Mashine.Value = "Brake Filling", True, 
+      		  IIf(Parameters!Mashine.Value = "Clucth Filling", True, 
+      		  IIf(Parameters!Mashine.Value  = "Transmission Filling", True, 
+       	          IIf(Parameters!Mashine.Value  = "Coolent Filling", True, 
+                  IIf(Parameters!Mashine.Value  = "Power Stering Filling", False, False)))))
+ 
+sr.no =RowNumber(nothing)   #384c70
+ 
+date =Format(Fields!Inserted_Date.Value, "yyyy-MM-dd HH:mm")  Query -- FORMAT(ms.Inserted_Date, 'HH:mm:ss') AS Time, WHERE your_date_column = CAST(GETDATE() AS DATE);
+ 
+status:- =IIf(ReportItems!Total_Count.Value =ReportItems!OK_Parts.Value ,"OK","NOK")
+ 
+percentage_=Round((Fields!OK_Parts.Value*100)/(Fields!Total_Count.Value),2) & "%"
+ 
+DateTimeFormat:-yyyy-MM-dd hh:mm:ss tt
+ 
+OK NOT OK =IIf(Fields!Defect_Status.Value = False, "OK","Not OK")
+ 
+Expretion Name in white report :- ="ADD Title Name: " + ExpretionF
+ 
+=Round((Sum(Fields!SCANNED.Value)/Sum(Fields!APPLICABLE.Value))*100,2)&"%"
+ 
+conversion -> From MIS as m where convert(date,InsertedDate)>= @StartDate1 and convert(date,InsertedDate) <=@EndDate1
+ 
+where convert(Datetime,ms.Inserted_Date)>=cast( @FromDate as datetime) and convert(Datetime,ms.Inserted_Date) <=cast(@ToDate as datetime)
+ 
+=iif(Not IsNothing(Fields!Platform_Name.Value),TRUE,FALSE)
+ 
+ 
+Color =IIF(Fields!Result.Value = "Pass OK", "Green","Red")
+ 
+=SWITCH(First(Fields!AllStatusOk.Value, "DataSet_HeadSubAssembly") = 1,"LimeGreen",First(Fields!AllStatusOk.Value, "DataSet_HeadSubAssembly") =2,"Tomato")
+=IIF(Fields> 0, "Path", Nothing)
+ 
+Multiple color in one chart 
+=Switch(
+    Fields!Category.Value = "Setup Change", "LightSteelBlue",
+    Fields!Category.Value = "Reason Not Available", "PaleTurquoise",
+    Fields!Category.Value = "Proccess", "LightGreen",
+    Fields!Category.Value = "Minor Stop Pages", "CornflowerBlue",
+    Fields!Category.Value = "Equipment", "LightSteelBlue",
+    Fields!Category.Value = "Die", "LightGrey",
+    True, "#00ffffff"
+)
+ 
+ 
+1. Using IsNothing with a Default Value:
+=IIF(IsNothing(First(Fields!No_OF_Joints_2.Value, "Pokayoke_Name7")), "Default Value", First(Fields!No_OF_Joints_2.Value, "Pokayoke_Name7"))
+ 
+2. Nested IIF Statements:
+=IIF(IsNothing(First(Fields!No_OF_Joints_2.Value, "Pokayoke_Name7")),"No Data",
+IIF(First(Fields!No_OF_Joints_2.Value, "Pokayoke_Name7") = "", "Empty", "Has Value"))
+ 
+3. Concatenating Fields:
+If you need to combine multiple fields or add static text to your output:
+=First(Fields!Field1.Value, "DatasetName") & " - " & First(Fields!Field2.Value, "DatasetName")
+ 
+4. Date Formatting:
+If you’re dealing with date fields and need to format them:
+=Format(First(Fields!DateField.Value, "DatasetName"), "MMMM dd, yyyy")
+ 
+5. Conditional Formatting in Text Boxes:
+You can apply conditional formatting to the color, font, or other properties based on field values:
+ 
+=IIF(First(Fields!Status.Value, "DatasetName") = "Completed", "Green", "Red")
+ 
+6. Using Lookup and LookupSet:
+If you need to retrieve values from another dataset in your report:
+=Lookup(Fields!ID.Value, Fields!ID.Value, Fields!Name.Value, "AnotherDatasetName")
+ 
+7. Handling Division by Zero:
+To avoid errors when dividing numbers, check for zero:
+=IIF(Fields!Denominator.Value = 0, 0, Fields!Numerator.Value / Fields!Denominator.Value)
+ 
+ 
+Report path =http://mvml-drnrs/DronaRep/Pages/ReportViewer.aspx?%2fTraceaibility+Report%2frpt_DateWise_Kitting_Report&rs:Command=Render
+ 
+ 
+ 
+/* Total percentage
+ 
+=IIf(
+    Fields!Paint_Kitting.Value > 0,  
+    IIf(
+        (Fields!Paint_Kitting.Value * 100) / Sum(Fields!Paint_Kitting.Value) > 100,
+        "100%",
+        Round((Fields!Paint_Kitting.Value * 100) / Sum(Fields!Paint_Kitting.Value), 2) & "%"
+    ),
+    "0%"
+)
+ 
+ 
+/////
+ 
+=IIf(
+   Fields!RH1_QDMS1.Value+Fields!LH1_QDMS1.Value+Fields!RH2_QDMS2.Value+Fields!LH2_QDMS2.Value+Fields!RH3_QualityGateway1.Value
++Fields!LH3_QDMS3.Value
++Fields!QualityGateway2.Value
++Fields!PDI.Value
++Fields!QualityGateway3.Value = 0, 
+    0, 
+    IIf(
+        (Fields!RH1_QDMS1.Value+Fields!LH1_QDMS1.Value+Fields!RH2_QDMS2.Value+Fields!LH2_QDMS2.Value+Fields!RH3_QualityGateway1.Value
++Fields!LH3_QDMS3.Value
++Fields!QualityGateway2.Value
++Fields!PDI.Value
++Fields!QualityGateway3.Value) * 100 /
+        Sum(Fields!Traceability_VIN_Count.Value) > 100,
+        100,
+        Round(
+           (Fields!RH1_QDMS1.Value+Fields!LH1_QDMS1.Value+Fields!RH2_QDMS2.Value+Fields!LH2_QDMS2.Value+Fields!RH3_QualityGateway1.Value
++Fields!LH3_QDMS3.Value
++Fields!QualityGateway2.Value
++Fields!PDI.Value
++Fields!QualityGateway3.Value) * 100 /
+        Sum(Fields!Traceability_VIN_Count.Value), 2
+        ) & "%"
+    )
+)& "%"
+ 
+ 
+*/
+
+
+
+
+
+
+
+//=======================================================================POP UP EXPRESSION 
+
+="javascript:void(window.open('http://mmptmrepsr/ReportServer/Pages/ReportViewer.aspx?%2fMTWD%2fSub_Report_Paint_Shop_Defect&rs:Command=Render&fromdate=" +Parameters!fromdate.Value+ "&todate=" +Parameters!todate.Value+"&defectid="+Fields!Defect_ID.Value', '_blank', 'resizable=1,ToolBarButtonsCell=1,status=1,menu=1,top=30,left=60,width=640,height=830'))"
