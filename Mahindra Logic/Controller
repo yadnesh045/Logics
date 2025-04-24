@@ -1,0 +1,724 @@
+using Mahindra_AD.Controllers.OrderManagement;
+using Mahindra_AD.Helper;
+using Mahindra_AD.Models;
+using System;
+using System.Collections.Generic;
+using System.Configuration;
+using System.Data;
+using System.Data.Entity;
+using System.Data.SqlClient;
+using System.Linq;
+using System.Web;
+using System.Web.Mvc;
+
+namespace Mahindra_AD.Controllers.PaintShop
+{
+    public class NewSelectivityController : Controller
+    {
+        private DRONA_NGPEntities db = new DRONA_NGPEntities();
+        GlobalData globalData = new GlobalData();
+        General generalHelper = new General();
+     
+        private decimal plantId;
+        private decimal stationId;
+        private decimal lineId;
+        private decimal shopId;
+        private string insertedHost;
+        private decimal insertedUserId;
+        public static string connectionstring = ConfigurationManager.ConnectionStrings["ADONET"].ConnectionString;
+        public static SqlConnection con = new SqlConnection(connectionstring);
+        DataTable dt;
+        public SqlCommand cmd;
+        public SqlDataAdapter sda;
+        Utility.Utility objUtility = new Utility.Utility();
+        // GET: NewSelectivity
+        public ActionResult Index()
+        {
+            plantId = ((FDSession)this.Session["FDSession"]).plantId;
+            stationId = ((FDSession)this.Session["FDSession"]).stationId;
+            lineId = ((FDSession)this.Session["FDSession"]).lineId;
+            shopId = ((FDSession)this.Session["FDSession"]).shopId;
+            insertedHost = ((FDSession)this.Session["FDSession"]).userHost;
+            insertedUserId = ((FDSession)this.Session["FDSession"]).userId;
+
+            globalData.pageTitle = "New Selectivity Out";
+            ViewBag.GlobalDataModel = globalData;
+                
+            ViewBag.Shop_ID = new SelectList(
+                     db.MM_Shops
+                       .Where(m => (m.Is_PaintShop ?? false) && !m.Shop_Name.Contains("MQS")),
+                     "Shop_ID",
+                     "Shop_Name"
+                 );
+
+
+
+            var objList = db.MM_Station_Carrier_LInk.Where(m => m.Station_ID == stationId).FirstOrDefault();
+            ViewBag.Carrier_Type = "";
+            var skipAssignedCarrier = objList.Skip_Assigned_Carrier;
+
+
+            if (objList != null)
+            {
+                ViewBag.PageTitle = objList.Station_Name ?? string.Empty;
+                if (objList.Skid == true)
+                {
+                    ViewBag.Carrier_No = new SelectList(db.MM_Shopwise_Carrier.Where(m => (skipAssignedCarrier == true ? string.IsNullOrEmpty(m.BodySrNo) : m.BodySrNo == m.BodySrNo) && m.Shop_ID == shopId && m.CarrierType == "Skid"), "Carrier_No", "Carrier_No");
+                    ViewBag.Carrier_Type = "Skid";
+                }
+                else if (objList.Hanger == true)
+                {
+                    ViewBag.Carrier_No = new SelectList(db.MM_Hanger.Where(m => (skipAssignedCarrier == true ? string.IsNullOrEmpty(m.BodySrNo) : m.BodySrNo == m.BodySrNo)), "Hanger_No", "Hanger_No", null);
+                    ViewBag.Carrier_Type = "Hanger";
+                }
+                else
+                {
+                    ViewBag.Carrier_No = new SelectList(db.MM_Hanger.Where(m => m.Hanger_No == "*99999*").ToList(), "Hanger_No", "Hanger_No", null);
+                }
+            }
+
+            globalData.pageTitle = "New Selectivity Out";
+            if (ViewBag.PageTitle != null)
+            {
+                if (ViewBag.PageTitle != "")
+                {
+                    globalData.pageTitle = ViewBag.PageTitle;
+                }
+            }
+            return View();
+
+        }
+        // ============================================================================================================================================
+
+        public ActionResult GetWIPData(string Serial_No = "")
+        {
+            plantId = ((FDSession)this.Session["FDSession"]).plantId;
+            stationId = ((FDSession)this.Session["FDSession"]).stationId;
+            lineId = ((FDSession)this.Session["FDSession"]).lineId;
+            shopId = ((FDSession)this.Session["FDSession"]).shopId;
+            insertedHost = ((FDSession)this.Session["FDSession"]).userHost;
+            insertedUserId = ((FDSession)this.Session["FDSession"]).userId;
+            var Date = DateTime.Today;
+            try
+            {
+                string latestBodyOutSerialNo = string.Empty;
+                int completedCount = 0;
+                var orderDetails = new List<OrderDetailDto>();
+
+                SqlCommand cmd = new SqlCommand("GetWIPDataFornewselectivity", con);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@Serial_No", (object)Serial_No ?? DBNull.Value);
+                cmd.CommandTimeout = 2500;
+
+                sda = new SqlDataAdapter(cmd);
+                DataSet ds1 = new DataSet();
+                sda.Fill(ds1);
+                using (var sda = new SqlDataAdapter(cmd))
+                {
+                    if (ds1.Tables.Count > 0 && ds1.Tables[0].Rows.Count > 0)
+                    {
+                        orderDetails = ds1.Tables[0].AsEnumerable()
+                            .Select(dr => new OrderDetailDto
+                            {
+                                BodySrno = dr.Field<string>("BodySrno"),
+                                Model_Code = dr.Field<string>("Model_Code"),
+                                Model_Description = dr.Field<string>("Model_Description"),
+                                Carrier_No = dr.Field<string>("Carrier_No"),
+                                Barcode = dr.Field<string>("Barcode"),
+                                Paint_Shop = dr.Field<string>("Paint_Shop"),
+                                Color = dr.Field<string>("Color"),
+                                Remark = dr.Field<string>("Remark"),
+                                UpdatedDateTime = dr.Field<string>("UpdatedDateTime"),
+                                Date = dr.Field<string>("Date"),
+                                Time = dr.Field<string>("Time"),
+                                IPMS_SRNO = dr.Field<string>("IPMS_SRNO"),
+                                MultiBar = dr.Field<string>("MLB")
+                            }).ToList();
+                    }
+
+                    if (ds1.Tables.Count > 1 && ds1.Tables[1].Rows.Count > 0)
+                    {
+                        latestBodyOutSerialNo = ds1.Tables[1].Rows[0]["LatestSrno"].ToString();
+                    }
+                    if (ds1.Tables.Count > 2 && ds1.Tables[2].Rows.Count > 0)
+                    {
+                        completedCount = Convert.ToInt32(ds1.Tables[2].Rows[0]["Completedcount"]);
+                    }
+                }
+
+
+                return Json(new { Result = orderDetails, Result1 = latestBodyOutSerialNo, CompletedCount = completedCount }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+
+            }
+
+            return Json(null, JsonRequestBehavior.AllowGet);
+        }
+        // ============================================================================================================================================
+
+
+        public ActionResult GetCompletedData(string Serial_No = "")
+        {
+            plantId = ((FDSession)this.Session["FDSession"]).plantId;
+            stationId = ((FDSession)this.Session["FDSession"]).stationId;
+            lineId = ((FDSession)this.Session["FDSession"]).lineId;
+            shopId = ((FDSession)this.Session["FDSession"]).shopId;
+            insertedHost = ((FDSession)this.Session["FDSession"]).userHost;
+            insertedUserId = ((FDSession)this.Session["FDSession"]).userId;
+            var Date = DateTime.Today;
+            try
+            {
+                string latestBodyOutSerialNo = string.Empty;
+                int WipCount = 0;
+                var orderDetails = new List<PaintCompleteCountModel>();
+
+
+                SqlCommand cmd = new SqlCommand("GetCompletedDatafornewselectivity", con);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@Serial_No", (object)Serial_No ?? DBNull.Value);
+                cmd.CommandTimeout = 2500;
+
+                sda = new SqlDataAdapter(cmd);
+                DataSet ds1 = new DataSet();
+                sda.Fill(ds1);
+
+
+                using (var sda = new SqlDataAdapter(cmd))
+                {
+                    if (ds1.Tables.Count > 0 && ds1.Tables[0].Rows.Count > 0)
+                    {
+                        orderDetails = ds1.Tables[0].AsEnumerable()
+                            .Select(dr => new PaintCompleteCountModel
+                            {
+                                BodySrno = dr.Field<string>("BodySrno"),
+                                Model_Code = dr.Field<string>("Model_Code"),
+                                Model_Description = dr.Field<string>("Model_Description"),
+                                Carrier_No = dr.Field<string>("Carrier_No"),
+                                Barcode = dr.Field<string>("Barcode"),
+                                Paint_Shop = dr.Field<string>("Paint_Shop"),
+                                Color = dr.Field<string>("Color"),
+                                Remark = dr.Field<string>("Remark"),
+                                Date = dr.Field<string>("Date"),
+                                Time = dr.Field<string>("Time"),
+                                IPMS_SRNO = dr.Field<string>("IPMS_SRNO"),
+                            }).ToList();
+                    }
+
+                    if (ds1.Tables.Count > 1 && ds1.Tables[1].Rows.Count > 0)
+                    {
+                        latestBodyOutSerialNo = ds1.Tables[1].Rows[0]["LatesSrno"].ToString();
+                    }
+
+                    if (ds1.Tables.Count > 2 && ds1.Tables[2].Rows.Count > 0)
+                    {
+                        WipCount = Convert.ToInt32(ds1.Tables[2].Rows[0]["WipCount"]);
+                    }
+                }
+
+
+
+
+
+                return Json(new { Result = orderDetails, Result1 = latestBodyOutSerialNo, WIPCount = WipCount }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+
+            }
+
+            return Json(null, JsonRequestBehavior.AllowGet);
+        }
+        // ============================================================================================================================================
+
+
+        public ActionResult ValidateSerialNo(string SerialNo, List<string> SerialNoList)
+        {
+            shopId = ((FDSession)this.Session["FDSession"]).shopId;
+            var length = SerialNoList.Count();
+            for (int i = 0; i < length; i++)
+            {
+                SerialNo = SerialNoList[i];
+                var objOrderList = db.MM_OM_Order_List.Where(m => m.Serial_No == SerialNo).ToList() ?? new List<MM_OM_Order_List>();
+                if (objOrderList.Count() == 0)
+                {
+                    return Json(new { Result = false, Msg = "Invalid Body Serial No Scanned / Entered." }, JsonRequestBehavior.AllowGet);
+                }
+                int result = 0;
+
+
+                result = (from s in db.MM_OM_Order_Status_Live
+                          where s.Action_Status == "Paint In" && s.Serial_No == SerialNo
+                          select s).Count();
+
+                if (result == 0)
+                {
+                    return Json(new { Result = false, Msg = "Please Scan This Serial No on Previous Stations.", CompletedCount = 0 }, JsonRequestBehavior.AllowGet);
+                }
+                else
+                {
+                    return Json(new { Result = true, Msg = "", CompletedCount = 0 }, JsonRequestBehavior.AllowGet);
+                }
+            }
+            return Json(new { Result = true, Msg = "", CompletedCount = 0 }, JsonRequestBehavior.AllowGet);
+        }
+        // ============================================================================================================================================
+
+        public ActionResult SaveData(string SerialNo, List<string> SerialNoList, bool WIP, bool CompletedRecord, string Carrier_No, string Barcode, int Paint_Shop_Id)
+        {
+            MetaShift objShift = new MetaShift();
+            plantId = ((FDSession)this.Session["FDSession"]).plantId;
+            stationId = ((FDSession)this.Session["FDSession"]).stationId;
+            lineId = ((FDSession)this.Session["FDSession"]).lineId;
+            shopId = ((FDSession)this.Session["FDSession"]).shopId;
+            insertedHost = ((FDSession)this.Session["FDSession"]).userHost;
+            insertedUserId = ((FDSession)this.Session["FDSession"]).userId;
+            string ValidMsg = "";
+            var result = false;
+            SerialNo = SerialNo.ToUpper();
+
+            try
+            {
+                int shiftID = objShift.getShiftID();
+                var length = SerialNoList.Count();
+                for (int i = 0; i < length; i++)
+                {
+
+                    SerialNo = SerialNoList[i].ToUpper();
+                    var orderNo = db.MM_OM_Order_List.Where(m => m.Serial_No == SerialNo).Select(m => m.Order_No).FirstOrDefault();
+                    if (!string.IsNullOrEmpty(orderNo))
+                    {
+                        var ExistingOrder = db.MM_OM_Order_Status_Live.Where(m => m.Serial_No == SerialNo || m.Order_No == orderNo).Select(m => m).FirstOrDefault();
+
+                        if (ExistingOrder != null)
+                        {
+                            if (Paint_Shop_Id == 17)
+                            {
+
+                                string update_data = "Update MM_OM_Order_Status_Live set Barcode='" + Barcode + "',Carrier_No='" + Carrier_No + "',Order_No='" + orderNo + "',Paint_Shop_ID='" + Paint_Shop_Id + "',";
+                                update_data += "Updated_Date = GETDATE(),Updated_Host='" + insertedHost + "',Updated_User_ID='" + insertedUserId + "',Action_Status='Selectivity Out',Station_ID='" + stationId + "',";
+                                update_data += "Plant_ID='" + plantId + "',Shop_ID='" + shopId + "',Line_ID='" + lineId + "',Serial_No='" + SerialNo + "',Shift_ID='" + shiftID + "',Entry_Time='" + DateTime.Now.TimeOfDay + "', is_SelectivityDate= GetDate()";
+                                update_data += " Where (Serial_No='" + SerialNo + "' OR Order_No='" + orderNo + "') ";
+
+                                var intCount = objUtility.ExecuteNonQuery_SQL(update_data, CommandType.Text, null, null);
+                            }
+                            else if(Paint_Shop_Id ==10)
+                            {
+                                string update_data = "Update MM_OM_Order_Status_Live set Barcode='" + Barcode + "',Carrier_No='" + Carrier_No + "',Order_No='" + orderNo + "',Paint_Shop_ID='" + Paint_Shop_Id + "',";
+                                update_data += "Updated_Date = GETDATE(),Updated_Host='" + insertedHost + "',Updated_User_ID='" + insertedUserId + "',Action_Status='PTED Out',Station_ID='" + stationId + "',";
+                                update_data += "Plant_ID='" + plantId + "',Shop_ID='" + shopId + "',Line_ID='" + lineId + "',Serial_No='" + SerialNo + "',Shift_ID='" + shiftID + "',Entry_Time='" + DateTime.Now.TimeOfDay + "', is_SelectivityDate= GetDate()";
+                                update_data += " Where (Serial_No='" + SerialNo + "' OR Order_No='" + orderNo + "') ";
+
+                                var intCount = objUtility.ExecuteNonQuery_SQL(update_data, CommandType.Text, null, null);
+
+                            }
+                        }
+                        else
+                        {
+
+                            string insert_data = "Insert into MM_OM_Order_Status_Live(Barcode,Serial_No,Inserted_Date,Inserted_Host,Inserted_User_ID,Station_ID,Plant_ID,Shop_ID,Line_ID,";
+                            insert_data += " Carrier_No,Paint_Shop_ID,Action_Status,Order_No,Entry_Date,Shift_ID,Entry_Time)";
+                            insert_data += "Values('" + Barcode + "','" + SerialNo + "',GETDATE(),'" + insertedHost + "','" + insertedUserId + "','" + stationId + "','" + plantId + "',";
+                            insert_data += "'" + shopId + "','" + lineId + "','" + Carrier_No + "','" + Paint_Shop_Id + "','Selectivity Out','" + orderNo + "',GETDATE(),'" + shiftID + "','" + DateTime.Now.TimeOfDay + "')";
+
+                            var intCount = objUtility.ExecuteNonQuery_SQL(insert_data, CommandType.Text, null, null);
+                        }
+
+                    }
+
+                    #region  SAP Production Booking Table Entry 
+                    #region Get CED Variant Part No from MM_BOM_Item Table 
+
+                    #endregion
+                    #region old Commented code Get CED Variant Code from MOdel Master 
+                    try
+                    {
+                        var attributeionParameters = string.Empty;
+
+                        decimal LineID = db.MM_OM_Order_List.Where(m => m.Serial_No == SerialNo).Select(m => m.Line_ID).FirstOrDefault();
+
+                        if (LineID == 14 || LineID == 30)
+                        {
+                            string modelCode = db.MM_OM_Order_List.Where(m => m.Serial_No == SerialNo).Select(m => m.Model_Code).FirstOrDefault().ToString();
+
+                            if (!string.IsNullOrEmpty(modelCode))
+                            {
+                                string cargoCode = db.MM_Model_Master.Where(m => m.Model_Code == modelCode).Select(m => m.Cargo_Code).FirstOrDefault().ToString();
+                                if (!string.IsNullOrEmpty(cargoCode))
+                                {
+                                    attributeionParameters = (from mm in db.MM_Model_Master.Where(m => m.Model_Code == cargoCode)
+                                                              select mm.Attribution_Parameters).FirstOrDefault();
+                                }
+                            }
+                        }
+                        else
+                        {
+                            attributeionParameters = (from ol in db.MM_OM_Order_List.Where(m => m.Serial_No == SerialNo)
+                                                      join mm in db.MM_Model_Master on ol.Model_Code equals mm.Model_Code
+                                                      where mm.Shop_ID == ol.Shop_ID
+                                                      select mm.Attribution_Parameters).FirstOrDefault();
+
+                        }
+                        List<AttributionParameters> objAttributesList = (List<AttributionParameters>)Newtonsoft.Json.JsonConvert.DeserializeObject(attributeionParameters, typeof(List<AttributionParameters>));
+
+                        var cedVariantCode = string.Empty;
+                        if (objAttributesList.Any())
+                        {
+                            cedVariantCode = objAttributesList.Where(m => m.label == "CED Variant").FirstOrDefault().Value;
+                        }
+
+                        string cedVariant = string.Empty;
+                        if (!string.IsNullOrEmpty(cedVariantCode))
+                        {
+                            var cedVar = Convert.ToInt32(cedVariantCode);
+                            cedVariant = db.MM_Attribution_Parameters.Where(m => m.Attribute_ID == cedVar).Select(m => m.Attribute_Desc).FirstOrDefault() ?? string.Empty;
+                        }
+                        else
+                        {
+                            Utility.Utility objUtility = new Utility.Utility();
+                            objUtility.AddDataToHelpDesk(40, 3, 5, 32, Convert.ToInt32(plantId), Convert.ToInt32(shopId), Convert.ToInt32(lineId), Convert.ToInt32(stationId), ((FDSession)this.Session["FDSession"]).userHost, ((FDSession)this.Session["FDSession"]).userId, "1. CED Varint Code is Empty for  Body Sr No : " + SerialNo, "' CED Varint Code not configured in Model Master " + "" + "'");
+                            objUtility = null;
+                        }
+
+                        var objList = db.MM_SAP_Production_Booking.Where(m => m.Shop_ID == shopId && m.Line_ID == lineId && m.Serial_No == SerialNo).Count();
+                        if (objList == 0)
+                        {
+
+
+                            string insert_que = "INSERT INTO MM_SAP_Production_Booking(Plant_ID, Shop_ID, Line_ID, Station_ID, Serial_No, BIW_Part_No, Inserted_Date, Inserted_Host, Inserted_User_ID, Data_Status) ";
+                            insert_que += "VALUES ('" + plantId + "','" + shopId + "','" + lineId + "','" + stationId + "','" + SerialNo + "',";
+                            insert_que += "CASE WHEN '" + cedVariant + "' IS NULL OR '" + cedVariant + "' = '' THEN 'NO DATA' ELSE '" + cedVariant + "' END, GETDATE(), '" + insertedHost + "','" + insertedUserId + "','N');";
+
+
+
+                            var intCount = objUtility.ExecuteNonQuery_SQL(insert_que, CommandType.Text, null, null);
+
+
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Utility.Utility objUtility = new Utility.Utility();
+                        objUtility.AddDataToHelpDesk(41, 2, 3, 33, Convert.ToInt32(plantId), Convert.ToInt32(shopId), Convert.ToInt32(lineId), Convert.ToInt32(stationId), ((FDSession)this.Session["FDSession"]).userHost, ((FDSession)this.Session["FDSession"]).userId, "Error While Saving SAP Production Entry at Selectivity Out Station for Serial No: " + SerialNo, "' Error Occured  " + ex.Message + ex.InnerException + " Stack " + ex.StackTrace + "'");
+                        objUtility = null;
+                    }
+                    #endregion old commented code 
+
+
+
+
+
+                    #endregion  // SAP Production Booking for Selectivity Out 
+                    try
+                    {
+
+                        if (!string.IsNullOrEmpty(orderNo))
+                        {
+                            MM_OM_OrderRelease objOrderRelease = db.MM_OM_OrderRelease.Where(m => m.Order_No == orderNo).FirstOrDefault();
+                            objOrderRelease.Order_Status = "Selectivity Out";
+                            db.Entry(objOrderRelease).State = EntityState.Modified;
+                            db.SaveChanges();
+                        }
+                        else
+                        {
+                            return Json(new { Result = false, Msg = "Body Serial Number Not found in Order List. Body Sr No :" + SerialNo }, JsonRequestBehavior.AllowGet);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        return Json(new { Result = false, Msg = "Error while changing Order Status to Body Out" }, JsonRequestBehavior.AllowGet);
+                    }
+
+                    result = true;
+                }
+                return Json(new { Result = result, Msg = ValidMsg }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { Result = result, Msg = ValidMsg }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        // ============================================================================================================================================
+
+        public ActionResult RecallBody(string SerialNo, List<string> SerialNoList, bool WIP, bool CompletedRecord, string recallBodyStatus)
+        {
+            plantId = ((FDSession)this.Session["FDSession"]).plantId;
+            stationId = ((FDSession)this.Session["FDSession"]).stationId;
+            lineId = ((FDSession)this.Session["FDSession"]).lineId;
+            shopId = ((FDSession)this.Session["FDSession"]).shopId;
+            insertedHost = ((FDSession)this.Session["FDSession"]).userHost;
+            insertedUserId = ((FDSession)this.Session["FDSession"]).userId;
+
+            string ValidMsg = "";
+            string prevCarrierNo = string.Empty;
+            var result = false;
+            decimal? recallShopId = 0;
+            decimal? recallLineId = 0;
+            decimal? recallStationId = 0;
+
+            SerialNo = SerialNo.ToUpper();
+            try
+            {
+                var length = SerialNoList.Count();
+                for (int i = 0; i < length; i++)
+                {
+                    SerialNo = SerialNoList[i].ToUpper();
+                    var orderNo = db.MM_OM_Order_List.Where(m => m.Serial_No == SerialNo).Select(m => m.Order_No).FirstOrDefault();
+                    if (!string.IsNullOrEmpty(orderNo))
+                    {
+                        var ExistingShopLine = db.MM_OM_Order_Status_Log.Where(m => m.Serial_No == SerialNo && m.Order_No == orderNo && m.Action_Status == recallBodyStatus).Select(m => m).FirstOrDefault();
+                        if (ExistingShopLine != null)
+                        {
+                            recallShopId = ExistingShopLine.Shop_ID ?? 0;
+                            recallLineId = ExistingShopLine.Line_ID ?? 0;
+                            recallStationId = ExistingShopLine.Station_ID ?? 0;
+                        }
+
+                        var ExistingOrder = db.MM_OM_Order_Status_Live.Where(m => m.Serial_No == SerialNo || m.Order_No == orderNo).Select(m => m).FirstOrDefault();
+                        prevCarrierNo = ExistingOrder.Carrier_No;
+                        if (ExistingOrder != null)
+                        {
+                            string updateQuery = "UPDATE MM_OM_Order_Status_Live SET ";
+                            updateQuery += "Updated_Date = GETDATE(), ";
+                            updateQuery += "Updated_Host = '" + insertedHost + "', ";
+                            updateQuery += "Updated_User_ID = '" + insertedUserId + "', ";
+                            updateQuery += "Action_Status = '" + recallBodyStatus + "', is_SelectivityDate = NULL, ";
+
+                            if (recallBodyStatus != "Paint In")
+                            {
+                                updateQuery += "Carrier_No = '', ";
+                            }
+                            if (recallShopId != 0)
+                            {
+                                updateQuery += "Shop_ID = " + recallShopId + ", ";
+                            }
+                            if (recallLineId != 0)
+                            {
+                                updateQuery += "Line_ID = " + recallLineId + ", ";
+                            }
+                            if (recallStationId != 0)
+                            {
+                                updateQuery += "Station_ID = " + recallStationId + ", ";
+                            }
+
+                            updateQuery = updateQuery.TrimEnd(',', ' ');
+
+                            updateQuery += " WHERE Order_No = '" + orderNo + "' or Serial_No = '" + SerialNo + "' ;";
+
+                            var intCount = objUtility.ExecuteNonQuery_SQL(updateQuery, CommandType.Text, null, null);
+
+
+                        }
+                    }
+
+                    try
+                    {
+                        if (!string.IsNullOrEmpty(orderNo))
+                        {
+                            MM_OM_OrderRelease objOrderRelease = db.MM_OM_OrderRelease.Where(m => m.Order_No == orderNo).FirstOrDefault();
+                            objOrderRelease.Order_Status = recallBodyStatus;
+                            db.Entry(objOrderRelease).State = EntityState.Modified;
+                            db.SaveChanges();
+                        }
+                        else
+                        {
+                            return Json(new { Result = false, Msg = "Body Serial Number Not found in Order List. Body Sr No :" + SerialNo }, JsonRequestBehavior.AllowGet);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        return Json(new { Result = false, Msg = "Error while changing Order Status to Body Out" }, JsonRequestBehavior.AllowGet);
+                    }
+
+                    ViewBag.Carrier_Type = CheckCarrierType();
+                    if (ViewBag.Carrier_Type == "Skid")
+                    {
+
+                        var objFindInSkid = db.MM_Shopwise_Carrier.Where(m => m.CarrierType == "Skid" && m.BodySrNo == SerialNo).ToList(); //&& m.Carrier_No == prevCarrierNo.Trim()
+                        if (objFindInSkid != null && objFindInSkid.Count() > 0)
+                        {
+                            foreach (var item in objFindInSkid)
+                            {
+                                item.BodySrNo = null;
+                                db.Entry(item).State = EntityState.Modified;
+                                db.SaveChanges();
+                            }
+
+                        }
+                    }
+                    else if (ViewBag.Carrier_Type == "Hanger")
+                    {
+                        var objHanger = db.MM_Hanger.Where(m => m.Hanger_No == prevCarrierNo.Trim()).FirstOrDefault();
+                        if (objHanger != null)
+                        {
+                            objHanger.BodySrNo = null;
+                            db.Entry(objHanger).State = EntityState.Modified;
+                            db.SaveChanges();
+                        }
+                    }
+                    if (recallBodyStatus == "Paint In")
+                    {
+
+                        ViewBag.Carrier_Type = CheckCarrierType();
+                        if (ViewBag.Carrier_Type == "Skid")
+                        {
+                            decimal? skidGrp = Convert.ToInt16(ViewBag.SkidGroup);
+                            var objSkid = db.MM_Shopwise_Carrier.Where(m => m.CarrierType == "Skid" && m.Carrier_No == prevCarrierNo.Trim() && m.Skid_Group == 1).FirstOrDefault();
+                            if (objSkid != null)
+                            {
+                                objSkid.BodySrNo = SerialNo;
+                                db.Entry(objSkid).State = EntityState.Modified;
+                                db.SaveChanges();
+                            }
+                        }
+                        else if (ViewBag.Carrier_Type == "Hanger")
+                        {
+                            var objHanger = db.MM_Hanger.Where(m => m.Hanger_No == prevCarrierNo.Trim()).FirstOrDefault();
+                            if (objHanger != null)
+                            {
+                                objHanger.BodySrNo = SerialNo;
+                                db.Entry(objHanger).State = EntityState.Modified;
+                                db.SaveChanges();
+                            }
+                        }
+                    }
+
+
+                    result = true;
+                }
+                return Json(new { Result = result, Msg = ValidMsg }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { Result = result, Msg = ValidMsg }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        // ============================================================================================================================================
+
+        public String CheckCarrierType()
+        {
+            stationId = ((FDSession)this.Session["FDSession"]).stationId;
+            var objList = db.MM_Station_Carrier_LInk.Where(m => m.Station_ID == stationId).FirstOrDefault();
+            ViewBag.Carrier_Type = "";
+            var skipAssignedCarrier = false;
+            if (objList != null)
+                skipAssignedCarrier = objList.Skip_Assigned_Carrier ?? false;
+
+            if (objList != null)
+            {
+                ViewBag.PageTitle = objList.Station_Name ?? string.Empty;
+                if (objList.Skid == true)
+                {
+
+                    ViewBag.Carrier_No = new SelectList(db.MM_Shopwise_Carrier.Where(m => (skipAssignedCarrier == true ? string.IsNullOrEmpty(m.BodySrNo) : m.BodySrNo == m.BodySrNo) && m.CarrierType == "Skid" && m.Skid_Group == (objList.Skid_Group == null ? 0 : objList.Skid_Group)), "Carrier_No", "Carrier_No");
+                    ViewBag.Carrier_Type = "Skid";
+                    ViewBag.SkidGroup = objList.Skid_Group;
+                }
+                else if (objList.Hanger == true)
+                {
+                    ViewBag.Carrier_No = new SelectList(db.MM_Hanger.Where(m => (skipAssignedCarrier == true ? string.IsNullOrEmpty(m.BodySrNo) : m.BodySrNo == m.BodySrNo)), "Hanger_No", "Hanger_No", null);
+                    ViewBag.Carrier_Type = "Hanger";
+                    ViewBag.SkidGroup = 0;
+                }
+                else
+                {
+                    ViewBag.Carrier_No = new SelectList(db.MM_Hanger.Where(m => m.Hanger_No == "*99999*").ToList(), "Hanger_No", "Hanger_No", null);
+                }
+            }
+            return ViewBag.Carrier_Type;
+        }
+        // ============================================================================================================================================
+
+        public ActionResult GetBodySrNumberDetails(string SerialNo)
+        {
+            string Abc = "";
+            var orderNo = db.MM_OM_Order_List.Where(m => m.Serial_No == SerialNo).FirstOrDefault();
+            Abc = "Model No: " + orderNo.Model_Code + "    " + "Serial No: " + orderNo.Serial_No;
+            // var length = SerialNoList.Count();
+            return Json(new { Result = true, Msg = Abc }, JsonRequestBehavior.AllowGet);
+        }
+
+
+
+        public ActionResult chk_BOT_Applicable(string Serial_No = "")
+        {
+            bool status = false;
+            try
+            {
+                var Attribution_Parameters = db.MM_Model_Master.Where(m => m.Model_Code == Serial_No).Select(m => m.Attribution_Parameters ?? string.Empty).FirstOrDefault();
+                if (Attribution_Parameters != null)
+                {
+                    List<AttributionParameters> attributionParameters = (List<AttributionParameters>)Newtonsoft.Json.JsonConvert.DeserializeObject(Attribution_Parameters, typeof(List<AttributionParameters>));
+                    for (int i = 0; i < attributionParameters.Count; i++)
+                    {
+                        AttributionParameters attributionParameter = attributionParameters[i];
+                        try
+                        {
+                            Convert.ToInt32(attributionParameter.Value);
+                        }
+                        catch (Exception)
+                        {
+                            continue;
+                        }
+                        if (attributionParameter.label.Equals("Vehicle Series", StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            int attrId = Convert.ToInt32(attributionParameter.Value);
+                            var Attribute_Code = db.MM_Attribution_Parameters.Find(attrId).Attribute_Desc;
+                            var bot = db.MM_Vehicle_Series.Where(m => m.Attribute_Name.ToLower() == Attribute_Code.ToLower()).OrderByDescending(m => m.Inserted_Date).Select(m => m.BOT).FirstOrDefault();
+                            if (bot == "BOT")
+                            {
+                                status = true;
+                                return Json(status, JsonRequestBehavior.AllowGet);
+                            }
+                            //return Json(status, JsonRequestBehavior.AllowGet);
+                        }
+                    }
+                }
+                return Json(status, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(status, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        public class OrderDetailDto
+        {
+            public string BodySrno { get; set; }
+            public string Model_Code { get; set; }
+            public string Model_Description { get; set; }
+            public string Carrier_No { get; set; }
+            public string Barcode { get; set; }
+            public string Paint_Shop { get; set; }
+            public string Color { get; set; }
+            public string Date { get; set; }
+            public string Time { get; set; }
+            public string Remark { get; set; }
+            public string IPMS_SRNO { get; set; }
+            public DateTime Updated_Date { get; set; }
+            public string UpdatedDateTime { get; set; }
+            public string MultiBar { get; set; }
+        }
+        public class PaintCompleteCountModel
+        {
+            public string BodySrno { get; set; }
+            public string Model_Code { get; set; }
+            public string Model_Description { get; set; }
+            public string Carrier_No { get; set; }
+            public string Barcode { get; set; }
+            public string Paint_Shop { get; set; }
+            public string Color { get; set; }
+            public string Date { get; set; }
+            public string Time { get; set; }
+            public string Remark { get; set; }
+            public string IPMS_SRNO { get; set; }
+            public DateTime Updated_Date { get; set; }
+            public string LatestBodyOutSerialNo { get; set; }
+            public int CompletedCount { get; set; }
+            public int WIPCount { get; set; }
+        }
+    }
+}
