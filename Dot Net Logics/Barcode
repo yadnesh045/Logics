@@ -1,0 +1,70 @@
+@{
+    ViewBag.Title = "Index";
+    Layout = null;
+}
+ 
+ 
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+ 
+<div class="container" style="margin-top: 5%    ">
+ 
+    <div class="row">
+<div class="col-md-6">
+<input id="string" type="text" placeholder="enter string to Generate QR" />
+</div>
+<div class="col-md-6">
+<button class="bg-primary" id="Generete"> Generate</button>
+</div>
+</div>
+ 
+    <div id="barcode_hide" style="display:none">
+<center>
+<canvas id="qrcode-2" style="height: 100px;width: 100px;margin-top: 30px;"></canvas>
+<br>
+<label id="LableBodyNumber" style="font-size:25px;"></label>
+</center>
+</div>
+ 
+ 
+ 
+ 
+</div>
+<script src="~/Content/QRScript/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script>
+ 
+ 
+    $(document).ready(function () {
+ 
+ 
+        $('#Generete').click(function () {
+            debugger;
+            var string = $('#string').val();
+            get_barcode(string);
+ 
+        });
+ 
+      
+    })
+ 
+    function get_barcode(bar) {
+ 
+        var canvasStyle = "height:100px;width:100px;margin-left: 930px;margin-top: -50px;margin-bottom: -30px;";
+        document.getElementById('qrcode-2').style.cssText = canvasStyle;
+ 
+ 
+        document.getElementById('barcode_hide').style.display = 'block';
+        var qrcode = new QRious({
+            element: document.getElementById("qrcode-2"),
+            background: '#000000',
+            backgroundAlpha: 1,
+            foreground: '#FFFFFF',
+            foregroundAlpha: 1,
+            level: 'H',
+            padding: 5,
+            size: 500,
+            value: bar
+        });
+    }
+ 
+</script>
