@@ -1,0 +1,2614 @@
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/admin/_Layout_PaintShop.cshtml";
+    //Layout = "~/Views/Shared/WithoutSideBarNoMenu/_Layout.cshtml";
+}
+<style>
+    /*table.dataTable, table.dataTable th, table.dataTable td {
+        -webkit-box-sizing: border-box !important;
+        -moz-box-sizing: border-box!important;
+        box-sizing: border-box!important;
+    }*/
+    .flashing {
+        width: 3rem;
+        height: 2rem;
+    }
+
+    .dataTables_wrapper .dataTables_filter {
+        width: 100% !important;
+        float: right !important;
+        text-align: center;
+        /*//align the Search box to center. left and right also valid*/
+    }
+
+    .dataTable > tbody > tr > td, .dataTable > tbody > tr > th, .dataTable > tfoot > tr > td, .dataTable > tfoot > tr > th, .dataTable > thead > tr > td, .dataTable > thead > tr > th {
+        /*padding-bottom: 0px !important;
+        padding-top: 0px !important;*/
+        padding: 0px;
+        font-size: 15px;
+        padding-top: 6px;
+        padding-bottom: 6px;
+    }
+
+    #wip_completed > tbody > tr > td, #wip_completed > tbody > tr > th, #wip_completed > tfoot > tr > td, #wip_completed > tfoot > tr > th, #wip_completed > thead > tr > td, #wip_completed > thead > tr > th {
+        padding: 0px;
+        font-size: 15px;
+        padding-top: 6px;
+        padding-bottom: 6px;
+    }
+
+    #wip_completed > thead > tr {
+        height: 0px !important;
+    }
+
+    html,
+    body {
+        height: 100%;
+        overflow-y: hidden;
+    }
+
+    #dataTables_scrollHeadInner > table > tr > th {
+        /*padding-bottom: 0px !important;
+        padding-top: 0px !important;*/ /*padding: 0px;*/
+    }
+</style>
+
+<style>
+    .autocomplete {
+        /*the container must be positioned relative:*/
+        position: relative;
+        display: inline-block;
+    }
+
+    .bold-text {
+        font-weight: bold;
+        color: red;
+    }
+
+    .ui-autocomplete {
+        max-height: 200px;
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+
+    input {
+        border: 1px solid transparent;
+        background-color: #f1f1f1;
+        padding: 10px;
+        font-size: 16px;
+    }
+
+        input[type=text] {
+            background-color: #f1f1f1;
+            width: 100%;
+        }
+
+        input[type=submit] {
+            background-color: DodgerBlue;
+            color: #fff;
+        }
+
+    .autocomplete-items {
+        position: absolute;
+        border: 1px solid #d4d4d4;
+        border-bottom: none;
+        border-top: none;
+        z-index: 99;
+        /*position the autocomplete items to be the same width as the container:*/
+        top: 100%;
+        left: 0;
+        right: 0;
+    }
+
+        .autocomplete-items div {
+            padding: 10px;
+            cursor: pointer;
+            background-color: #fff;
+            border-bottom: 1px solid #d4d4d4;
+        }
+
+            .autocomplete-items div:hover {
+                /*when hovering an item:*/
+                background-color: #e9e9e9;
+            }
+
+    .autocomplete-active {
+        /*when navigating through the items using the arrow keys:*/
+        background-color: DodgerBlue !important;
+        color: #ffffff;
+    }
+</style>
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f0f7ff;
+    }
+
+    /*.container {
+            width: 80%;
+            margin: 0 auto;
+
+
+            /*box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);*/
+    }
+
+    */
+
+    h1 {
+        text-align: center;
+        color: #333;
+        font-size: 24px;
+    }
+
+    .form-group {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 10px;
+    }
+
+        .form-group label {
+            width: 40%;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .form-group input {
+            width: 55%;
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+    .form-container {
+        display: flex;
+        justify-content: space-between;
+        flex-wrap: wrap;
+    }
+
+    .form-column {
+        width: 48%;
+    }
+
+    .buttons {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 20px;
+    }
+
+        .buttons button {
+            padding: 10px 20px;
+            margin-left: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            color: white;
+        }
+
+            .buttons button#generate-vin {
+                background-color: #428bca;
+            }
+
+            .buttons button#close-form {
+                background-color: #5cb85c;
+            }
+
+            .buttons button#clear-screen {
+                background-color: #f0ad4e;
+            }
+
+            .buttons button#skip-vin {
+                background-color: #d9534f;
+            }
+
+    .mode {
+        margin-top: 20px;
+        margin-bottom: 20px;
+    }
+
+        .mode label {
+            margin-right: 10px;
+        }
+
+        .mode input[type="radio"] {
+            margin-right: 5px;
+        }
+
+    .last-vin {
+        color: red;
+        font-size: 18px;
+        font-weight: bold;
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    .footer {
+        text-align: center;
+        font-weight: bold;
+        color: #333;
+    }
+
+    .highlight {
+        color: red;
+        font-size: 18px;
+        font-weight: bold;
+        text-align: center;
+        margin-top: 10px;
+    }
+
+    .buttons {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end; /* Align the buttons to the left (optional) */
+        margin-top: 20px;
+    }
+
+        .buttons button {
+            padding: 10px 20px;
+            margin-bottom: 10px; /* Add space between the buttons */
+            width: 200px; /* Make the buttons take up the full width */
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            color: white;
+        }
+
+    .multi-color-flash {
+        font-size: 50px;
+        font-weight: bold;
+        text-align: center;
+        animation: colorFlash 5s infinite;
+    }
+
+    @@keyframes colorFlash {
+        0% {
+            color: red;
+        }
+
+        10% {
+            color: orange;
+        }
+
+        20% {
+            color: black;
+        }
+
+        30% {
+            color: green;
+        }
+
+        40% {
+            color: blue;
+        }
+
+        50% {
+            color: indigo;
+        }
+
+        60% {
+            color: violet;
+        }
+
+        70% {
+            color: darkgreen;
+        }
+
+        80% {
+            color: brown;
+        }
+
+        90% {
+            color: cyan;
+        }
+
+        100% {
+            color: red;
+        }
+    }
+</style>
+
+
+<body>
+    <div>
+        @{ Html.RenderPartial("_TriminShopWithCheckBox");}
+        <div class="col-md-12" style="background-color:dimgray;line-height:50px;display:none">
+            <div class="col-md-3" style="width:auto" clas="autocomplete">
+                <label for="XferSerialNo" style="color:white">Body Sr No :</label>
+                <input type="text" id="XferSerialNo" style="width:auto;height:27px" class="" />
+                <span id="spanXferSerialNo" style="color:red"></span>
+            </div>
+            <div class="col-md-5" style="width:auto">
+                <label for="TCFShopList" style="color:white">Shop :</label>
+                @Html.DropDownList("TCFShopList", null, "", htmlAttributes: new { onchange = "", @class = "", @style = "width:auto" })
+                <span id="spanTCFShopList" style="color:red"></span>
+            </div>
+            <div class="col-md-4" style="width:auto">
+                <button type="button" class="btn btn-primary" id="btnXferSerialNo" style="width:auto">Update Line</button>
+            </div>
+        </div>
+    </div>
+</body>
+<div id="testy" style="margin-top:7%"></div>
+<div class="loader" id="7balls">
+    <ul class="clsul">
+        <li class="clsli"></li>
+        <li class="clsli"></li>
+        <li class="clsli"></li>
+        <li class="clsli"></li>
+        <li class="clsli"></li>
+        <li class="clsli"></li>
+        <li class="clsli"></li>
+    </ul>
+</div>
+
+
+<div class="modal fade"  id="editModal"   data-backdrop="static" data-keyboard="false"  tabindex="-1" role="presentation" aria-labelledby="editModalLabel" aria-hidden="true" style="">
+    <div class="modal-dialog model-md" role="document" id="cus">
+        <div class="modal-content" style="width:1000px;margin-left:-200px;margin-top:-20px">
+            <div class="modal-body">
+                <form id="vinmodelform">
+                    <div style="margin:10px">
+                        <div class="form-container">
+                            <div class="form-column">
+                                <div class="form-group" style="height:30px;">
+                                    <label for="model-code">Model Code</label>
+                                    <input type="text" id="model-code" name="modelCode">
+                                </div>
+                                <div class="form-group" style="height:30px;">
+                                    <label for="body-sr-no">Body Sr. No.</label>
+                                    <input type="text" id="body-sr-no" name="bodySrNo">
+                                </div>
+
+                                <div class="form-group" style="height:30px;">
+                                    <label for="country">Country</label>
+                                    <input type="text" id="country" name="country">
+                                </div>
+
+                                <div class="form-group" style="height:30px;">
+                                    <label for="eng-sr-no">Eng. Sr. No.</label>
+                                    <input type="text" id="eng-sr-no" name="engSrNo">
+                                </div>
+
+                                <div class="form-group" style="height:30px;">
+                                    <label for="gvm">GVM</label>
+                                    <input type="text" id="gvm" name="GVM">
+                                </div>
+
+                                <div class="form-group" style="height:30px;">
+                                    <label for="gcm">GCM</label>
+                                    <input type="text" id="gcm" name="GCM">
+                                </div>
+
+                                <div class="form-group" style="height:30px;">
+                                    <label for="ga-fr">GA Fr.</label>
+                                    <input type="text" id="ga-fr" name="GAFront">
+                                </div>
+
+                                <div class="form-group" style="height:30px;">
+                                    <label for="ga-rear">GA Rear</label>
+                                    <input type="text" id="ga-rear" name="GARear">
+                                </div>
+
+                                <div class="form-group" style="height:30px;">
+                                    <label for="model-pd">Model P/D</label>
+                                    <input type="text" id="model-pd" name="PD">
+                                </div>
+
+                                <div class="form-group" style="height:30px;">
+                                    <label for="regulation">Regulation</label>
+                                    <input type="text" id="regulation" name="regulation">
+                                </div>
+
+                                <div class="form-group" style="height:30px;">
+                                    <label for="last-two-vin">Last Two V.I.N.</label>
+                                    <input type="text" id="last-two-vin" name="lastTwoVin">
+                                </div>
+                            </div>
+
+                            <div class="form-column">
+
+                                <div class="form-group" style="height:30px;">
+                                    <label for="transmission">Transmission</label>
+                                    <input type="text" id="transmission" name="transmission">
+                                </div>
+                                <img src="~/Content/images/Mahindra-Logo.png" style=" height: 134px;width: 200px; margin-bottom: -97px;margin-left: 27px;" />
+                                <div class="buttons" style="margin-top:-20px">
+                                    <button type="button" id="generate_vin" name="action" value="generateVin" style="color:white;background-color:green">Save</button>
+                                    <button type="button" id="skipvin" onclick="myfunction();" style="color:white;background-color:dodgerblue;display:none">Skip Vin</button>
+                                    <button type="button" id="clear_screen" onclick="window.location.reload();" style="color:white;background-color:red">Close</button>
+
+                                </div>
+
+                                <p class="highlight" style="font-size:30px; margin:20px; margin-right:10px">
+                                    <strong><em>MODEL : @ViewBag.shoptitle</em></strong>
+                                </p>
+
+                                <div class="highlight" style="text-align:left">
+                                    <span id="yearcodemsg" style="font-size:20px"></span> <br />
+                                    <span id="Monthcodemsg" style="font-size:20px"></span>
+                                    <p style="font-size:20px">Today's Date : @DateTime.Now.ToString("dd/MM/yyyy")</p>
+                                </div>
+
+                                <div class="last-vin" style="font-size: 30px;margin-right: 119px;margin-top: 3px;font-family:math;color:#0026ff">Last VIN<br /><span style="font-size:40px" id="lastvin"></span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-top:-25px;display:none;justify-content:center" id="duplicatevinid">
+                        <h5 style="font-size:25px;font-weight:bold" class="multi-color-flash">Duplicate VIN Detected</h5>
+                    </div>
+
+                    <div class="form-group" style="margin-top:-25px;display:none;justify-content:center" id="punchingCodefound">
+                        <h5 style="font-size:25px;font-weight:bold" class="multi-color-flash">Punching Code is Not Maintained</h5>
+                    </div>
+
+                    <div class="form-group" style="font-size:25px;">
+                        <label for="model-desc">Model Desc.</label>
+                        <input type="text" id="model-desc" name="ModelDescription" style="width:1600px;">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="vin" style="font-size:30px;">V.I.N</label>
+                        <input type="text" id="vin" class="multi-color-flash" style="width:1600px; height:40px; font-size:35px;" name="VinNoWithHash" readonly>
+                    </div>
+
+
+                    <input type="text" id="vinwithhash" class="multi-color-flash" style="width:1600px; height:40px; font-size:35px;" name="VinNoWithoutHash" hidden>
+
+
+
+                    <input type="text" id="bodysrno" class="multi-color-flash" style="width:1600px; height:40px; font-size:35px;" name="BodySrNo" hidden>
+
+
+                    <input type="text" id="rawvinno" class="multi-color-flash" style="width:1600px; height:40px; font-size:35px;" name="VinNo" hidden>
+
+
+                    <input type="text" id="plateId" class="multi-color-flash" style="width:1600px; height:40px; font-size:35px;" name="PlateId" hidden>
+
+
+                    <input type="text" id="ModelFor" class="multi-color-flash" style="width:1600px; height:40px; font-size:35px;" name="ModelFor" hidden>
+                </form>
+
+
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jquery_ui")
+    @Scripts.Render("~/bundles/jqueryval")
+    @Scripts.Render("~/bundles/Select2scripts")
+    @*@Scripts.Render("~/Content/theme/plugins/datatables/js")*@
+    @Scripts.Render("~/fdtheme/notification_js")
+
+
+
+    @*@Scripts.Render("~/Content/theme/plugins/datatables/css")*@
+    @*<script src="~/Scripts/buttons.flash.min.js"></script>
+        <script src="~/Scripts/buttons.html5.min.js"></script>
+        <script src="~/Scripts/dataTables.buttons.min.js"></script>*@
+    <script src="~/Content/theme/plugins/datatables/jquery.dataTables.min.js"></script>
+    @*<script src="~/Content/PaintShop/PaintShop.js"></script>*@
+}
+@section Styles {
+    <link href="~/Content/theme/plugins/jQueryUI/jquery-ui.css" rel="stylesheet" />
+
+    @Styles.Render("~/fdtheme/notification_css");
+    @Styles.Render("~/Content/Select2styles")
+    <link href="~/Content/theme/plugins/datatables/jquery.dataTables.min.css" rel="stylesheet" />
+    <link href="~/Content/PaintShop/PaintShop.css" rel="stylesheet" />
+}
+<script type="text/javascript">
+    var showBarCode = true;
+    var showCarrier = true;
+    var showPaintShop = true;
+    var pageLengthtoDispaly = 10;
+    var table;
+    var bodySrNos;
+    var showFlashingCheckbox = false;
+    var First_Serial_Number = 0;
+
+
+    $(document).ready(function () {
+        // $("#Serial_Number").hide();
+        $("#Carrier_No").hide();
+        $("#RefreshScreen").hide();
+        $("#Serial_Number1").hide();
+        $("#recall").hide();
+        $("#no_vin").show();
+
+        $('#lblShiftWiseCount').html('Shift Count:');
+
+        $('#genData').hide();
+        //$('#SaveData').show();
+        $("#divData").css("margin-top", "0");
+
+        $(document).ajaxStart(function () {
+            $('#7balls').show();
+        })
+        $(document).ajaxStop(function () {
+            $('#7balls').hide();
+        });
+
+        $('#btnXferSerialNo').on('click', function (e) {
+            var result = true;
+            $('#spanXferSerialNo').html('');
+            $('#spanTCFShopList').html('');
+            if ($('#XferSerialNo').val() == "" || $('#XferSerialNo').val() == undefined) {
+                $('#spanXferSerialNo').html('Select Body Sr No');
+                result = false;
+            }
+            if ($('#TCFShopList').val() == "" || $('#TCFShopList').val() == undefined) {
+                $('#spanTCFShopList').html('Select Shop');
+                result = false;
+            }
+
+            if (result == false) {
+                return;
+            }
+            var url = "/TrimIn/TransferToOtherTCF";
+            $.ajax({
+                type: "POST",
+                url: url,
+                data: { SerialNo: "", serialNo: $('#XferSerialNo').val(), ShopID: $('#TCFShopList').val() },
+                traditional: true,
+                success: function (data) {
+                    debugger;
+                    if (WIPRecord)
+                        GetData();
+                    if (Delete)
+                        GetCompletedData();
+                    ClearTextBox();
+                    FillCarrierDropdown();
+                    if (data.Result == true) {
+                        $('#testy').toastee({
+                            type: 'success',
+                            width: '500px',
+                            height: '100px',
+                            message: "Successfully Transfered",
+                        });
+                    }
+                    else {
+                        $('#testy').toastee({
+                            type: 'error',
+                            width: '500px',
+                            height: '100px',
+                            message: data.Msg,
+                        });
+                    }
+                }
+            });
+
+
+        });
+
+        $("#siderbarmenu").click();
+
+        ShowHideControls();
+
+        $("#Carrier_No").select2({
+            allowClear: true,
+
+            placeholder: "Select New Carrier No",
+            "language": {
+                "noResults": function () {
+                    $('#Carrier_No').val('').trigger('change');
+                    //return "No Results Found <a href='#' class='btn btn-danger'>Use it anyway</a>";
+                    return "No Results Found";
+                }
+            },
+            escapeMarkup: function (markup) {
+                return markup;
+            }
+            //tags: true,
+        });
+
+
+        $("#Shop_ID").select2({
+            allowClear: true,
+            tags: true,
+        });
+
+        UpdatePopupMessage("Are you sure, want to send body to Trim In.");
+
+        $('.modelist').on('change', function () {
+            var Entrymode = document.getElementById("WIP").checked;
+            var Deletemode = document.getElementById("CompletedRecord").checked;
+            // LastMarkingNumber();
+
+            $("#spanSerialNo").html("");
+            $("#spanSHNumber").html("");
+            $("#spanBarcode").html("");
+            //$("#spanSkidNumber").html("");
+
+
+            if (Entrymode == true) {
+
+                //$("#Serial_Number").prop('disabled', false);
+                //$("#genData").prop('disabled', false);
+                $("#Serial_Number").val("");
+                $("#Serial_Number").focus();
+                UpdatePopupMessage("Are you sure, want to send Body to PBS In");
+                $("#CompletedRecord").prop("checked", false);
+                $("#WIP").prop("checked", true);
+                //$("#divCompletedData").html("");
+                //$("#divCompletedData").css("display", "none");
+                $("#wip_completed > tbody").html("");
+                $("#divData").css("display", "block");
+                //$('#WIPContent').show();
+                $('.hideoncomplete').show();
+                ShowHideDiv();
+                GetData();
+
+            }
+            else {
+
+
+                $("#Serial_Number1").val("");
+                $("#Serial_Number1").focus();
+                //$("#Serial_Number").prop('disabled', true);
+                //$("#genData").prop('disabled', true);
+                UpdatePopupMessage("Are you sure, want to recall Body");
+                $("#CompletedRecord").prop("checked", true);
+                $("#WIP").prop("checked", false);
+                //$("#divData").html("");
+                $("#wip_completed > tbody").html("");
+                $("#divData").css("display", "block");
+                ////$("#divCompletedData").css("display", "block");
+                //$('#WIPContent').hide();
+                $('.hideoncomplete').hide();
+                GetCompletedData();
+            }
+        });
+
+           window.onload = function () {
+            $("#WIP").prop("checked", true);
+            $("#CompletedRecord").prop("checked", false);
+
+            $('#Serial_Number').prop('disabled', false);
+            GetData();
+
+        }
+
+
+        $("#Serial_Number").focus();
+
+        var rows = [];
+        $('#myModal_MarkingData').on('show.bs.modal', function (e) {
+
+            rows = $(table.$('input[type="checkbox"]').map(function () {
+                return $(this).prop("checked") ? $(this).closest('tr') : null;
+            }));
+            debugger;
+            if (rows.length <= 0) {
+
+
+                $('#testy').toastee({
+                    type: 'info',
+                    width: '500px',
+                    height: '100px',
+                    message: 'No Rows selected.',
+                });
+                $("#myModal_MarkingData").modal("hide");
+                return;
+
+            }
+            //console.log(rows);
+            var srnoCollection = [];
+            $("#popupTable > tbody").html("");
+            $.each(rows, function (key, value) {
+
+
+                srnoCollection.push($(this).data('serialno'));
+                //alert(key + ": " + value);
+                console.log(srnoCollection);
+
+                var res = '';
+                res += '  <tr  style="color:black" style="font-size:16px;border:1px solid black" data-serialno=' + $(this).data('serialno') + '>';
+                res += '<td    style  = "font-size:15px; border:1px solid black;padding:0px ">';
+                res += '           ' + $(this).data('serialno');
+                res += '       </td>';
+
+
+
+                $("#popupTable > tbody").append(res);
+            });
+        });
+
+
+
+        $("#IsYes").on("click", function (e) {
+            $("#spanSerialNo").html("");
+            var SerialNo = $("#Serial_Number").val();
+            var WIPRecord = document.getElementById("WIP").checked;
+            var Delete = document.getElementById("CompletedRecord").checked;
+            var carrierNo = "";
+            var shopID = 0;
+            var barcd = "";
+            if ($("#Shop_ID").is(":visible")) {
+                shopID = $('#Shop_ID').val();
+            }
+            if ($("#Barcode").is(":visible")) {
+                barcd = $('#Barcode').val();
+            }
+            if ($("#Carrier_No").is(":visible")) {
+                carrierNo = $('#Carrier_No').val();
+            }
+            var srnoCollection = [];
+            $.each(rows, function (key, value) {
+                srnoCollection.push($(this).data('serialno'));
+            });
+            if (srnoCollection.length <= 0)
+            {
+                $('#testy').toastee({
+                    type: 'info',
+                    width: '500px',
+                    height: '100px',
+                    message: 'No Rows selected.',
+                });
+                $("#myModal_MarkingData").modal("hide");
+                return;
+            }
+
+            var url = "/TrimIn/SaveData";
+
+            if (Delete) {
+                RecallBody(SerialNo, WIPRecord, Delete, srnoCollection);
+                return;
+            }
+
+            $.ajax({
+                type: "POST",
+                url: url,
+                data: { SerialNo: "", SerialNoList: srnoCollection, WIP: WIPRecord, CompletedRecord: Delete, Shop_Id: shopID },
+                traditional: true,
+                success: function (data) {
+                    $("#myModal_MarkingData").modal("hide");
+                    $("#Serial_Number").val("");
+                    $("#Serial_Number").focus();
+
+                    if (WIPRecord)
+                        GetData();
+                    if (Delete)
+                        GetCompletedData();
+
+
+                    ClearTextBox();
+                    FillCarrierDropdown();
+                    //LastMarkingNumber();
+                    if (data.Result == true) {
+                        $('#testy').toastee({
+                            type: 'success',
+                            width: '500px',
+                            height: '100px',
+                            message: data.Msg,
+                        });
+                    }
+                    else {
+                        $('#testy').toastee({
+                            type: 'error',
+                            width: '500px',
+                            height: '100px',
+                            message: data.Msg,
+                        });
+                    }
+                }
+            });
+        });
+
+
+        function UpdatePopupMessage(Msg) {
+            //$("#vinpopup").html(Msg);
+            var x = "";
+        }
+
+
+    });
+
+    //function SetJQDataTable() {
+    //    table = $("#wip_completed").DataTable({
+    //        responsive: true,
+    //        "ordering": false,
+    //        select: true,
+    //        stateSave: false,
+    //        destroy: true,
+    //        processing: true,
+    //        searchHighlight: true,
+
+    //        //columnDefs: [
+    //        //    { targets: [4], orderSequence: ["asc", "asc", "desc"] }],
+    //        fixedHeader: true,
+    //        //"columnDefs": [
+    //        //    {
+    //        //        "width": "39%",
+    //        //        "targets": 3
+    //        //    }, {
+    //        //        "width": "8%",
+    //        //        "targets": 4
+    //        //    },
+    //        //    {
+    //        //        "width": "10%",
+    //        //        "targets": 2
+    //        //    },
+    //        //    {
+    //        //        "width": "7%",
+    //        //        "targets": 5
+    //        //    }, {
+    //        //        "width": "11%",
+    //        //        "targets": 6
+    //        //    }, {
+    //        //        "width": "20%",
+    //        //        "targets": 7
+    //        //    },
+    //        //    {
+    //        //        "width": "14%",
+    //        //        "targets": 9
+    //        //    }, {
+    //        //        "width": "7%",
+    //        //        "targets": 1
+    //        //    }
+    //        //],
+    //        "order": [[7, "asc"]],
+    //        bLengthChange: true, //used to hide the property
+    //        lengthMenu: [
+    //            [10, 15, 20, 30, 50, -1],
+    //            ['10', '15', '20', '30', '50', 'Show all']
+    //        ],
+    //        buttons: [
+    //            'pageLength'
+    //        ],
+    //        "pageLength": pageLengthtoDispaly,
+
+    //        //"sDom": "rtipl",
+    //        dom: 'Rfrtlip',
+    //        "scrollY": $(window).height() - 300,
+    //        "scrollCollapse": true,
+    //        "paging": false,
+
+    //    });
+    //    $('#wip_completed').wrap('<div class="dataTables_scroll" />');
+
+    //    $("#wip_completed_filter.dataTables_filter").html($("div.dataTables_filter").html() + ' <button class="btn btn-primary" style="float:left" type="button" onclick="location.reload();"><i class="fa fa-refresh"></i></button>');
+
+    //    //$("#wip_completed_filter.dataTables_filter").html($("div.dataTables_filter").html() + ' <button type="button" id="genData2" onclick="SaveData();" class="btn btn-primary order_Supervisor_cred" style="float: left;margin-left: 10px;" ><i class="fa fa-save"></i></button>');
+
+
+    //    $("#wip_completed_filter.dataTables_filter").html($("div.dataTables_filter").html() + ' <button type="button" id="genData2" onclick="vinmodelshow();" class="btn btn-primary order_Supervisor_cred" style="float: left;margin-left: 10px;" ><i class="fa fa-save"></i></button>');
+
+
+    //    $("#wip_completed_filter.dataTables_filter").html($("div.dataTables_filter").html() + ' <button type="button" onclick="No_VIN();" id="no_vin" style="margin-left: 30%;background-color: orange;" class=" btn btn-primary NoVin">NO - VIN');  //float: left;
+
+    //    $("#wip_completed_filter.dataTables_filter").html($("div.dataTables_filter").html() + ' <button type="button" onclick="print();" id="re-print" style="margin-left: 1%;background-color: green;" class=" btn btn-primary">Re-Print');  //float: left;
+
+
+    //    // $("#wip_completed_filter.dataTables_filter").html($("div.dataTables_filter").html() + '<input type="text" id="txtReprint" class="form-inline" style="  height: 30px;width: 200px !important;margin: 0;padding: 0;font-size: 15px;border: 1px solid #CCCCCC;float: left;margin-left:160px;;" placeholder="Enter Body Sr No to Reprint"/>');
+
+    //    //  $("#wip_completed_filter.dataTables_filter").html($("div.dataTables_filter").html() + '<input type="text" id="hdntxtReprint" class="form-inline" style="  height: 30px;width: 200px !important;margin: 0;padding: 0;font-size: 15px;border: 1px solid #CCCCCC;float: left;margin-left:160px;display:none;" placeholder="Enter Body Sr No to Reprint"/>');
+    //    if (showFlashingCheckbox) {
+    //        $("#wip_completed_filter.dataTables_filter").html($("div.dataTables_filter").html() + '<label style="width:auto" display:"inline-block!important"> Sticker Printing</label>');
+    //        $("#wip_completed_filter.dataTables_filter").html($("div.dataTables_filter").html() + '<input class="flashing" type="checkbox" id="buildSheetPrint">Build Sheet</input>');
+    //        //$("#wip_completed_filter.dataTables_filter").html($("div.dataTables_filter").html() + '<input class="flashing" type="checkbox" id="absFlashing" >ABS Flashing</input>');
+    //        $("#wip_completed_filter.dataTables_filter").html($("div.dataTables_filter").html() + '<input class="flashing" type="checkbox" id="cockpitFlashing" />COCKPIT Flashing</input>');
+    //        $("#wip_completed_filter.dataTables_filter").html($("div.dataTables_filter").html() + '<input class="flashing" type="checkbox" id="ecuFlashing" >ECU Flashing</input>');
+    //        //$("#wip_completed_filter.dataTables_filter").html($("div.dataTables_filter").html() + '<input class="flashing" type="checkbox" id="stkexportVin">Export Vin</input>');
+    //    }
+
+    //    $("#tblAggregates_filter.dataTables_filter>label").css({ "width": "28%", "float": "right", "margin-bottom": "0px" })
+    //    $("#wip_completed_filter.dataTables_filter").html($("div.dataTables_filter").html() + ' <button onclick="Recall();" id="recall" style="margin-left: 10px;" class=" btn btn-primary">Re-call');  //float: left;
+
+
+
+    //    // $("#wip_completed_filter.dataTables_filter").html($("div.dataTables_filter").html() + '<input type="text" id="Serial_Number" class="form-inline" style="  height: 30px;width: 200px !important;margin: 0;padding: 0;font-size: 15px;border: 1px solid #CCCCCC;float: left;margin-left:160px;;"placeholder="Search here"/>');
+    //    //  $("#wip_completed_filter.dataTables_filter").html($("div.dataTables_filter").html() + '<input type="text"  id="Serial_Number" class="form-inline" style="  height: 30px;width: 200px !important;margin: 0;padding: 0;font-size: 15px;border: 1px solid #CCCCCC;float: right;margin-left:160px;;" placeholder="Search here"/>');
+    //    $('#wip_completed_filter input[type="search"]').hide();
+    //    $('#wip_completed_filter label').hide()
+
+    //    $('.dataTables_scrollBody').css('max-height', $(window).height() - 300);
+
+
+    //}
+
+    function SetJQDataTable() {
+        table = $("#wip_completed").DataTable({
+            responsive: true,
+            "ordering": false,
+            select: true,
+            stateSave: false,
+            destroy: true,
+            processing: true,
+            searchHighlight: true,
+            fixedHeader: true,
+            "order": [[7, "asc"]],
+            bLengthChange: true, //used to hide the property
+            lengthMenu: [
+                [10, 15, 20, 30, 50, -1],
+                ['10', '15', '20', '30', '50', 'Show all']
+            ],
+            buttons: [
+                'pageLength'
+            ],
+            "pageLength": pageLengthtoDispaly,
+
+            //"sDom": "rtipl",
+            dom: 'Rfrtlip',
+            "scrollY": $(window).height() - 300,
+            "scrollCollapse": true,
+            "paging": false,
+
+        });
+
+
+
+        $('#wip_completed').wrap('<div class="dataTables_scroll" />');
+
+        let buttonsHTML = `
+                            <div style="display: flex; align-items: center;padding:5px;">
+                                <button class="btn btn-primary" type="button" onclick="location.reload();" style="float:left; margin-right: 10px;">
+                                    <i class="fa fa-refresh"></i>
+                                </button>
+                                <button type="button" id="genData2" onclick="vinmodelshow();" class="btn btn-primary order_Supervisor_cred" style="margin-left: 10px;">
+                                    <i class="fa fa-save"></i>
+                                </button>
+                                
+                                <button type="button" onclick="print();" id="re-print" class="btn btn-primary" style="margin-left: 10px; background-color: green;">
+                                    Re-Print
+                                </button>
+
+                                <button onclick="Recall();" id="recall" class="btn btn-primary" style="margin-left: 10px;">
+                                    Re-call
+                                </button>
+
+                                <button type="button" onclick="No_VIN();" id="no_vin" class="btn btn-primary NoVin" style="margin-left: 1%; background-color: orange;">
+                                    NO - VIN
+                                </button>
+
+                                 <div class="MonthcodeChangeDiv hideoncomplete" id="MonthcodeChangeDiv" style="margin-left: 20%;">
+                                                 <h2 style="font-size: 20px; font-weight: bold; white-space: nowrap; color:red" >
+                                                <span id="daysremain"></span> <span id="msgtochangemonthcode"> </span>
+                                   </h2>
+                                 </div>
+
+                            </div>
+                        `;
+
+        $("#wip_completed_filter.dataTables_filter").html(buttonsHTML);
+        $('#wip_completed_filter input[type="search"]').hide();
+        $('#wip_completed_filter label').hide();
+        $("#tblAggregates_filter.dataTables_filter>label").css({
+            "width": "28%",
+            "float": "right",
+            "margin-bottom": "0px"
+        });
+    }
+
+
+    function MonthcodeChange() {
+        debugger;
+        const currentDate = new Date();
+        const day = currentDate.getDate();
+        const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
+        //const daysRemaining = 0;
+        const daysRemaining = daysInMonth - day;
+        if (daysRemaining > 0 && daysRemaining <= 5)
+        {
+            $('.MonthcodeChangeDiv').css("display", "block");
+            $('#daysremain').text(daysRemaining + " Days  Remain to Change The MonthCode");
+        }
+        else if (daysRemaining === 0) {
+
+            $('.MonthcodeChangeDiv').css("display", "block");
+
+
+            const nextMonthStart = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1);
+
+            function startCountdown() {
+                const now = new Date();
+                const timeDiff = nextMonthStart - now;
+                if (timeDiff <= 0) {
+
+                    $('#daysremain').text("Month Code Change Time!");
+                    clearInterval(countdownInterval);
+                } else
+                {
+
+                    const hours = Math.floor((timeDiff / (1000 * 60 * 60)) % 24);
+                    const minutes = Math.floor((timeDiff / (1000 * 60)) % 60);
+                    const seconds = Math.floor((timeDiff / 1000) % 60);
+
+
+                    $('#daysremain').text(
+                        hours + "h " + minutes + "m " + seconds + "s Remaining " + "to Change Month Code"
+                    );
+
+
+                    $('#msgtochangemonthcode').text('');
+                   
+                }
+            }
+
+            const countdownInterval = setInterval(startCountdown, 1000);
+            startCountdown();
+        }
+        else {
+            $('.MonthcodeChangeDiv').css("display", "none");
+        }
+    }
+
+
+
+
+
+    function ClearDataTable() {
+        $("#wip_completed tbody").html('');
+        $("#wip_completed").DataTable().clear();
+        $('#wip_completed').DataTable().destroy();
+    }
+
+    function GetData(serialNo) {
+        $('#7balls').show();
+        var url = "/TrimIn/GetWIPData";
+        $.getJSON(url, { Serial_No: serialNo }, function (data) {
+            var res = "";
+            $("#Serial_Number1").hide();
+            $("#Serial_Number").show();
+            $("#recall").hide();
+            $("#no_vin").show();
+            $('#7balls').hide();
+
+            if (serialNo != '' && serialNo != undefined) {
+                if (data.Result.length > 0) {
+                    $('#Serial_Number').val(data.Result[0].BodySrNo);
+                }
+            }
+
+            debugger;
+            showFlashingCheckbox = data.ShowFlashingCheckBox;
+
+
+            for (var i = 0; i < data.Result.length; i++) {
+
+                res += '';
+                res += '  <tr  style="color:black" id="trID' + i + '" style="font-size:16px;border:1px solid black" data-serialno=' + data.Result[i].BodySrNo + '>';
+                res += '      <td  onclick="UncheckAllCheckBox(this)" class="selcheckbox" style  = "font-size:15px; border:1px solid black;padding:3px; width:5%!important; display:none;">';
+                res += '<input type="checkbox" id="chkSelect' + i + '" class="chkSelect" style="width: 2rem !important;height: 1.5rem;"/>'
+                res += '       </td>';
+                res += '      <td ondblclick="SetSerialNo(' + "'" + data.Result[i].BodySrNo + "'" + ')"  style  = "font-size:15px; border:1px solid black;padding:3px ">';
+                res += '           ' + data.Result[i].DSN;
+                res += '       </td>';
+                res += '      <td ondblclick="SetSerialNo(' + "'" + data.Result[i].BodySrNo + "'" + ')"  style  = "font-size:15px; border:1px solid black;padding:3px ">';
+                res += '           ' + data.Result[i].BodySrNo;
+                res += '       </td>';
+                res += '      <td  style  = "font-size:15px; border:1px solid black;padding:3px;white-space: nowrap; overflow: hidden;text - overflow: ellipsis;">';
+                res += '           ' + data.Result[i].Paint_Shop;
+                res += '       </td>';
+
+                res += '      <td title="' + data.Result[i].Model_Description + '" style  = "font-size:15px; border:1px solid black;padding:3px;white-space: nowrap;width: 50px;overflow: hidden;text - overflow: ellipsis;text-align:left">';
+                res += '           ' + data.Result[i].Model_Description;
+                res += '       </td>';
+                res += '      <td ondblclick="SetSerialNo(' + "'" + data.Result[i].BodySrNo + "'" + ')"  style  = "font-size:15px; border:1px solid black;padding:3px ">';
+                res += '           ' + data.Result[i].IPMS_SRNO;
+                res += '       </td>';
+                res += '      <td  style  = "font-size:15px; border:1px solid black;padding:3px ">';
+                res += '           ' + data.Result[i].Color;
+                res += '       </td>';
+                res += '      <td  style  = "font-size:15px; border:1px solid black;padding:3px;white-space: nowrap; overflow: hidden;text - overflow: ellipsis;">';
+                res += '           ' + data.Result[i].Carrier_No == null ? "" : data.Result[i].Carrier_No;
+                res += '       </td>';
+                res += '      <td data-order="' + data.Result[i].UpdatedDateTime + '"  style  = "font-size:15px; border:1px solid black;padding:3px ">';
+                res += '           ' + data.Result[i].Date;
+                res += '       </td>';
+
+
+                res += '    </tr>';
+
+
+
+            }
+            $(' th:nth-child(2)').show();
+            //$(' th:nth-child(5)').hide();
+            //$(' th:nth-child(6)').hide();
+
+
+            // res += ' </table>';
+            $("#wip_completed > tbody").html("");
+            ClearDataTable();
+            //$('#wip_completed').append(res);
+            $("#wip_completed > tbody").append(res);
+            //$("#divData").html(res);
+            debugger;
+            $("#lblTotalCount").html(data.Result.length);
+            if (data.Result1 != null) {
+                $("#lblLastBin").html(data.Result1);
+            }
+            $("#lblCompletedCount").html(data.CompletedCount);
+
+
+            //$('th:nth-child(9)').hide();
+            //$('td:nth-child(9)').hide();
+
+
+            //if (showCarrier == false) {
+
+
+            $('#wip_completed th:nth-child(6)').show();
+            $('#wip_completed td:nth-child(6)').show();
+
+
+            $('#wip_completed th:nth-child(4)').hide();
+            $('#wip_completed td:nth-child(4)').hide();
+
+
+
+            //$('th:nth-child(11)').hide();
+            //$('td:nth-child(11)').hide();
+            //$('th:nth-child(10)').hide();
+            //$('td:nth-child(10)').hide();
+
+            //}
+            //if (showBarCode == false) {
+            //$('th:nth-child(12)').hide();
+            //$('td:nth-child(12)').hide();
+            //}
+            //if (showPaintShop == false) {
+            //$('th:nth-child(13)').hide();
+            //$('td:nth-child(13)').hide();
+            //}
+            //alert('test1');
+
+            // ********************* get Autocomplete Data for Reprint
+            //debugger;
+            //var url = "/TrimIn/GetReprintSerialNos";
+            //$.ajax({
+            //    type: "POST",
+            //    url: url,
+            //    async: false,
+            //    data: { serialNo: serialNo },
+            //    traditional: true,
+            //    success: function (data) {
+            //        debugger;
+            //        //alert('test2');
+
+            //        if (data.Result.length > 0) {
+            //            bodySrNos = $.map(data.Result, function (a, index) {
+
+            //                return { id: a.BodySrNo, value: a.BodySrNo };
+
+            //            });
+            //            bodySrNos = bodySrNos.sort();
+            //        }
+            //    }
+            //});
+
+
+            // ********************* get Autocomplete Data for Reprint
+
+
+            SetJQDataTable();
+            $("#recall").hide();
+            //$("#no_vin").hide();
+            MonthcodeChange();
+            ClearTextBox();
+
+
+            if (data.Result.length > 0) {
+                $('#wip_completed tr:has(td)').find('input[type="checkbox"]').each(function () {
+                    debugger;
+                    $(this).prop("checked", true)
+                    //  $(this).prop("background-color", "yellow")
+                    // $('#chkSelect0').css("background-color", "#DFFF00");
+                    $('#trID0').css({ 'background-color': '#DFFF00' });
+
+                    //  UncheckAllCheckBox(this, data.Result[0].BodySrNo);
+                    return false;
+                });
+            }
+
+
+
+            if (serialNo != '' && serialNo != undefined) {
+                if (data.Result.length > 0) {
+                    $('#Serial_Number').val(data.Result[0].BodySrNo);
+                    //var carNo = (data.Result[0].Carrier_No);
+                    //$("#Carrier_No").val(carNo);
+
+                }
+            }
+            debugger;
+            //if (data.Result.length > 0)
+            //{
+            //    $('#wip_completed tr:has(td)').find('input[type="checkbox"]').each(function () {
+            //        debugger;
+            //        $(this).prop("checked", true)
+            //        //$('#txtModelDesc').val($(this).closest("tr")[0].dataset['serialno'] + " - " + $(this).closest("tr")[0].dataset['modeldesc']);
+            //        //UncheckAllCheckBox(this);
+            //        return false;
+            //    });
+            //}
+            // var bodySrNos = data.Result.map(robot => robot.BodySrNo);
+            $("#XferSerialNo").autocomplete({
+                source: bodySrNos,
+                autoFocus: true,
+                matchContains: true,
+                minChars: 1,
+                autoFill: true,
+                mustMatch: true,
+                cacheLength: 20,
+                max: 20,
+                select: function (event, ui) { },
+                //source: function (request, response) {
+                //    var matcher = new RegExp("^" + $.ui.autocomplete.escapeRegex(request.term), "i");
+                //    response($.grep(tags, function (item) {
+                //        return matcher.test(item);
+                //    }));
+                //}
+                response: function (event, ui) {
+                    debugger;
+                    // ui.content is the array that's about to be sent to the response callback.
+                    if (ui.content.length === 0) {
+                        $("#XferSerialNo").val('');
+                    } else {
+                        $("#XferSerialNo").empty();
+                    }
+                },
+
+
+            });
+
+
+
+            $.widget("app.autocomplete", $.ui.autocomplete, {
+
+                // Which class get's applied to matched text in the menu items.
+                options: {
+                    highlightClass: "ui-state-highlight",
+                    max: 10,
+                    position: { my: "right top", at: "right bottom" }
+                },
+
+                _renderItem: function (ul, item) {
+
+                    // Replace the matched text with a custom span. This
+                    // span uses the class found in the "highlightClass" option.
+                    var re = new RegExp("(" + this.term + ")", "gi"),
+                        cls = this.options.highlightClass,
+                        template = "<span class='" + cls + "'>$1</span>",
+                        label = item.label.replace(re, template),
+                        $li = $("<li/>").appendTo(ul);
+
+                    // Create and return the custom menu item content.
+                    $("<a/>").attr("href", "#")
+                        .html(label)
+                        .appendTo($li);
+
+                    return $li;
+
+                }
+
+            });
+
+            $("#txtReprint").on('blur', function () {
+                if ($.trim($("#txtReprint").val()) == '' || $("#txtReprint").val() == '0') {
+                    //$("#hdntxtReprint").val('');
+                    //$('#absFlashing').hide();
+                    //$('#cockpitFlashing').hide();
+                    //$('#ecuFlashing').hide();
+                    //$('#stkexportVin').hide();
+                    //$('#buildSheetPrint').hide();
+                }
+                else {
+
+                    //$('#absFlashing').show();
+                    //$('#cockpitFlashing').show();
+                    //$('#ecuFlashing').show();
+                    //$('#stkexportVin').show();
+                    //$('#buildSheetPrint').show();
+                }
+            });
+            $("#txtReprint").autocomplete({
+
+                source: bodySrNos,
+                //source: function(request,response){
+                //    response($.map(bodySrNos,function(item){
+                //        return {"id":item.id, "value":item.value}}))} ,
+                autoFocus: true,
+                matchContains: true,
+                minLength: 3,
+
+                //autoFill: true,
+                mustMatch: true,
+                maxResults: 2,
+                //cacheLength: 20,
+                //max: 20,
+                highlightClass: "bold-text",
+                classes: {
+                    "ui-autocomplete": "highlight"
+                },
+                select: function (event, ui) {
+
+                    $('#txtReprint').val(ui.item.value); // display the selected text
+                    $('#hdntxtReprint').val(ui.item.id); // save selected id to hidden input
+                    //$('#spanXferSerialNo').html('');
+                    return false;
+                },
+                change: function (event, ui) {
+
+                    $("#hdntxtReprint").val(ui.item ? ui.item.value : 0);
+                    //$('#spanXferSerialNo').html('')
+                },
+                search: function () {
+                    //reset every time a search starts.
+                    $("#hdntxtReprint").val("");
+                },
+                //select: function (event, ui) { },
+                //source: function (request, response) {
+                //    var matcher = new RegExp("^" + $.ui.autocomplete.escapeRegex(request.term), "i");
+                //    response($.grep(tags, function (item) {
+                //        return matcher.test(item);
+                //    }));
+                //}
+                response: function (event, ui) {
+                    debugger;
+                    // ui.content is the array that's about to be sent to the response callback.
+                    if (ui.content.length === 0) {
+                        $("#txtReprint").val('');
+                    } else {
+                        $("#txtReprint").empty();
+                    }
+                },
+
+
+            })
+
+            $('#Serial_Number').focus();
+            debugger;
+            if (serialNo != '' && serialNo != undefined) {
+                if (data.Result.length > 0) {
+                    $('#genData2').focus();
+                }
+            }
+
+        }).fail(function (jqXHR, textStatus, errorThrown) {
+            alert(jqXHR);
+            //location.reload();
+        });
+        GetShiftWiseStationWiseCount();
+    }
+
+    function ShowHideControls() {
+        var url = "/bodyout/GetStaionCarrierLink";
+        $.getJSON(url, {}, function (data) {
+
+            showBarCode = data.result.BarCode == undefined ? false : data.result.BarCode;
+            showCarrier = data.result.Carrier == undefined ? false : data.result.Carrier;
+            showPaintShop = data.result.Paint_Shop_List == undefined ? false : data.result.Paint_Shop_List;
+            pageLengthtoDispaly = data.result.Default_Page_Length == undefined ? 10 : data.result.Default_Page_Length;
+            ShowHideDiv();
+        }).fail(function (jqXHR, textStatus, errorThrown) {
+
+        });
+    }
+
+    function ShowHideDiv() {
+        if (showBarCode == false) {
+            $('#divBarcode').hide();
+        }
+        if (showCarrier == false) {
+            $('#divCarrier_No').hide();
+        }
+        if (showPaintShop == false) {
+            $('#divShop_ID').hide();
+
+        }
+    }
+
+    function SetSerialNo(SerialNo) {
+        $("#Serial_Number").val(SerialNo);
+        $("#Serial_Number1").val(SerialNo);
+    }
+
+    var dropcarriernNo = $('#Carrier_No');
+
+    $.ajax({
+        type: 'GET',
+        url: '/bodyout/GetCarrierList/'
+    }).then(function (data) {
+
+        // create the option and append to Select2
+        // $('#Carrier_No').select2('data', null);
+        //$('#Carrier_No').html('').select2({ data: { id: null, text: null } });if ($("#Carrier_No").is(":visible")) {
+        if ($("#Carrier_No").is(":visible")) {
+            $("#Carrier_No option").remove();
+            $('#Carrier_No').select2('data', null);
+        }
+
+
+        var option;
+        var i = 0;
+        $.each(data, function (key, value) {
+            i++;
+            if (i == 1)
+                option = new Option(value.Text, value.Value, true, true);
+            else
+                option = new Option(value.Text, value.Value, true, false);
+            dropcarriernNo.append(option);
+        });
+
+        dropcarriernNo.trigger('change');
+
+        // manually trigger the `select2:select` event
+        dropcarriernNo.trigger({
+            type: 'select2:select',
+            params: {
+                data: data
+            }
+        });
+    });
+
+
+
+    //$("#SaveData").on("click", function (e) {
+    function ValidateSaveData() {
+
+        var returnOk = true;
+        if ($("#Serial_Number").is(":visible")) {
+            if ($('#Serial_Number').val() == '' || $('#Serial_Number').val() == undefined) {
+                $("#spanSerialNo").html("Please Enter Serial Number.");
+                returnOk = false;
+            }
+        }
+        $("#spanSerialNo").html('');
+        //$("#spanSHNumber").html('');
+        if ($('#spanSHNumber').html() == 'Carrier No is already in use!') {
+            returnOk = false;
+        }
+        else {
+            $("#spanSHNumber").html('');
+        }
+        if ($('#Serial_Number').val() == '') {
+            $("#spanSerialNo").html("Please Select Body Serial No");
+            returnOk = false;
+        }
+        if ($("#Carrier_No").is(":visible")) {
+            if ($('#Carrier_No').val() == '' || $('#Carrier_No').val() == undefined) {
+                $("#spanSHNumber").html("Please Enter Hanger Number.");
+                returnOk = false;
+            }
+        }
+        if ($("#Barcode").is(":visible")) {
+            if ($('#Barcode').val() == '' || $('#Barcode').val() == undefined) {
+                $("#spanBarcode").html("Please Enter Barcode.");
+                returnOk = false;
+            }
+        }
+        if ($("#Shop_ID").is(":visible")) {
+            if ($('#Shop_ID').val() == '' || $('#Shop_ID').val() == undefined) {
+                $("#spanShopId").html("Please Select Shop.");
+                returnOk = false;
+            }
+        }
+        if ($('#spanSHNumber').html() == 'Carrier No is already in use!') {
+            returnOk = false;
+        }
+        //}));
+
+
+        if (returnOk) {
+          // SaveData();
+        }
+        //});
+    }
+
+    function SaveData() {
+
+        debugger;
+
+
+        var rows = [];
+        rows = $(table.$('input[type="checkbox"]').map(function () {
+            return $(this).prop("checked") ? $(this).closest('tr') : null;
+        }));
+
+        $.each(rows, function (key, value) {
+            serialNo = $(this).data('serialno');
+            modelCode = $(this).data('modelcode');
+            return false;
+        });
+
+
+        if ($('#Serial_Number').val() != serialNo)
+        {
+            $('#testy').toastee({
+                type: 'error',
+                width: '500px',
+                height: '100px',
+                message: 'Wrong Body Scan',
+            });
+            $("#Serial_Number").val("");
+            $("#Serial_Number").focus();
+
+            return;
+
+        }
+
+        var srnoCollection = [];
+        $.each(rows, function (key, value) {
+            srnoCollection.push(serialNo);
+            return false;
+        });
+
+
+        $("#spanSerialNo").html("");
+        var SerialNo = $("#Serial_Number").val();
+        var WIPRecord = document.getElementById("WIP").checked;
+        var Delete = document.getElementById("CompletedRecord").checked;
+        var shopID = 0;
+
+        if (srnoCollection.length <= 0) {
+            $('#testy').toastee({
+                type: 'info',
+                width: '500px',
+                height: '100px',
+                message: 'No Rows selected.',
+            });
+            //$("#myModal_MarkingData").modal("hide");
+            return;
+        }
+
+        var url = "/TrimIn/SaveData";
+
+        if (Delete) {
+
+            //RecallBody(SerialNo, WIPRecord, Delete, srnoCollection);
+            Recall();
+            return;
+        }
+
+        $.ajax({
+            type: "POST",
+            url: url,
+            data: { SerialNo: "", SerialNoList: srnoCollection, WIP: WIPRecord, CompletedRecord: Delete, Shop_Id: shopID },
+            traditional: true,
+            success: function (data) {
+                $("#myModal_MarkingData").modal("hide");
+                $("#Serial_Number").val("");
+                $("#Serial_Number").focus();
+
+                if (WIPRecord)
+                    GetData();
+                if (Delete)
+                    GetCompletedData();
+
+
+                ClearTextBox();
+                //LastMarkingNumber();
+                if (data.Result == true) {
+                    $('#testy').toastee({
+                        type: 'success',
+                        width: '500px',
+                        height: '100px',
+                        message: data.Msg,
+                    });
+                }
+                else {
+                    $('#testy').toastee({
+                        type: 'error',
+                        width: '500px',
+                        height: '100px',
+                        message: data.Msg,
+                    });
+                }
+            }
+        });
+
+    }
+
+    function print() {
+        var url = "/TrimIn/VinNumber_Reprint";
+        debugger;
+        var SerialNo = $("#Serial_Number").val();
+        //alert(SerialNo);
+        $.ajax({
+            type: "POST",
+             url: url,
+            data: JSON.stringify({ serialNo: SerialNo }),
+            contentType: "application/json; charset=utf-8",
+            traditional: true,
+            success: function (data)
+            {
+                $('#testy').toastee({
+                    type: 'success',
+                    width: '500px',
+                    height: '100px',
+                    message: "Reprinted Successfully",
+                });
+                $("#Serial_Number").val("");
+                $("#Serial_Number").focus();
+
+            },
+            error: function (xhr, status, error) {
+                console.error('Error occurred:', status, error);
+            }
+        });
+    }
+
+
+
+
+
+    function Reprint() {
+        debugger;
+        var serial_No = $("#txtReprint").val();
+
+        var hdnSerialNo = $("#hdntxtReprint").val();
+        if (serial_No == '' || serial_No == '0') {
+            $('#testy').toastee({
+                type: 'Info',
+                width: '500px',
+                height: '100px',
+                message: "Please enter Serial No to Re-Print <br/> or Invalid Serial No Entered",
+            });
+            return;
+        }
+        var ecuFlashing = "";
+        var cockpitFlashing = "";
+        var absFlashing = "";
+
+        ecuFlashing = $('#ecuFlashing').is(":checked");
+        absFlashing = false;// $('#absFlashing').is(":checked");
+        cockpitFlashing = $('#cockpitFlashing').is(":checked");
+        stkExportVin = false;// $('#stkexportVin').is(":checked");
+        buildSheetPrint = $('#buildSheetPrint').is(":checked");
+
+        //var Model_Code = $("#ModelCode").val();
+        //var Platform_ID = $("#Platform_ID").val();
+        $("#validmsg").html("");
+        if (serial_No != "") {
+            $.getJSON('/TrimIn/Reprint', { SerialNo: serial_No, absFlashing: absFlashing, ecuFlashing: ecuFlashing, cockpitFlashing: cockpitFlashing, stkExportVin: stkExportVin, printBuildSheet: buildSheetPrint }, function (data) {
+                if (data == true) {
+                    $("#txtReprint").val("");
+                    $("#txtReprint").focus();
+                    //$("#validmsg").html("Reprint Successfully");
+                    //$("#validmsg").css("color", "green");
+                    $('#testy').toastee({
+                        type: 'success',
+                        width: '500px',
+                        height: '100px',
+                        message: "Reprinted Successfully",
+                    });
+                }
+                else {
+                    $("#txtReprint").val("");
+                    $("#txtReprint").focus();
+                    //$("#validmsg").html("Invalid Serial No : " + serial_No);
+                    //$("#validmsg").css("color", "red");
+                    $('#testy').toastee({
+                        type: 'info',
+                        width: '500px',
+                        height: '100px',
+                        message: "Invalid Serial No : " + serial_No,
+                    });
+                }
+                //ShowWIPData(Model_Code, Platform_ID);
+            })
+        }
+        //})
+    }
+
+    function Recall() {
+        debugger;
+        var serial_No = $('#Serial_Number1').val();
+        if (serial_No == '' || serial_No == '0') {
+            $('#testy').toastee({
+                type: 'error',
+                width: '500px',
+                height: '100px',
+                message: "Please enter Serial No to Re-call",
+            });
+            return;
+        }
+
+        if (First_Serial_Number != serial_No) {
+            $('#testy').toastee({
+                type: 'error',
+                width: '500px',
+                height: '100px',
+                message: 'Wrong Body Scan',
+            });
+            $("#Serial_Number").val("");
+            $("#Serial_Number").focus();
+
+            return;
+
+        }
+
+
+
+        //var Model_Code = $("#ModelCode").val();
+        //var Platform_ID = $("#Platform_ID").val();
+        $("#validmsg").html("");
+        if (serial_No != "") {
+            $.getJSON('/TrimIn/Recall', { SerialNo: serial_No }, function (data) {
+                if (data.Msg == "1") {
+                    $("#Serial_Number1").val("");
+                    $("#Serial_Number1").focus();
+
+                    $('#testy').toastee({
+                        type: 'success',
+                        width: '500px',
+                        height: '100px',
+                        message: "Re-call Successfully",
+                    });
+
+                    GetCompletedData();
+                }
+                else if (data.Msg == "2")
+                {
+                    $("#Serial_Number1").val("");
+                    $("#Serial_Number1").focus();
+                    //$("#validmsg").html("Invalid Serial No : " + serial_No);
+                    //$("#validmsg").css("color", "red");
+                    $('#testy').toastee({
+                        type: 'error',
+                        width: '500px',
+                        height: '100px',
+                        message: "Vehicle Not Recall - Serial No : " + serial_No + "- Vin Number Allready assign",
+                    });
+                }
+                else {
+                    $("#Serial_Number1").val("");
+                    $("#Serial_Number1").focus();
+                    //$("#validmsg").html("Invalid Serial No : " + serial_No);
+                    //$("#validmsg").css("color", "red");
+                    $('#testy').toastee({
+                        type: 'info',
+                        width: '500px',
+                        height: '100px',
+                        message: "Invalid Serial No : " + serial_No,
+                    });
+                }
+                //ShowWIPData(Model_Code, Platform_ID);
+            })
+        }
+        //})
+    }
+
+    function UncheckAllCheckBox(elm) {
+        //$('table [type="checkbox"]').each(function (i, chk) {
+        //    debugger;
+        //    if (chk.checked) {
+        //        if ($(elm).closest('tr').index() != i) {
+        //            chk.checked = false;
+        //        }
+        //        //console.log("Checked!", i, chk);
+        //    }
+        //});
+        //CheckFirstCheckBox();
+        //return;
+        $(table.$('input[type="checkbox"]').map(function () {
+            debugger;
+            if ($(elm).closest('tr').index() != $(this).closest('tr').index()) {
+                if ($(this).prop("checked")) {
+                    $(this).prop("checked", false);
+                }
+            }
+
+        }));
+
+        //debugger;
+        //if ($(".selcheckbox").is(':checked')) {
+        //    $(".selcheckbox", table.rows().nodes()).each(function () {
+        //        $(elm).prop("checked", true);
+        //    });
+        //} else {
+        //    $(".selcheckbox", table.rows().nodes()).each(function () {
+        //        $(elm).prop("checked", false);
+        //    })
+        //}
+        //$(elm).closest('table  [type="checkbox"]').find('.selcheckbox').prop('checked', elm.checked);
+    }
+
+    function ClearTextBox() {
+
+    }
+
+    function UnSelectAll(elm) {
+        $(table.$('input[type="checkbox"]').map(function () {
+
+            if ($(elm).closest('tr').index() != $(this).closest('tr').index()) {
+                //if ($(this).prop("checked")) {
+                $(this).prop("checked", false);
+                //}
+            }
+
+        }));
+    }
+
+    function UncheckAll() {
+        $(table.$('input[type="checkbox"]').map(function () {
+            $(this).prop("checked", false);
+        }
+        ));
+    }
+
+    function RecallBody(SerialNo, WIPRecord, Delete, SerialNoList) {
+        var url = "/TrimIn/RecallBody";
+
+        $.ajax({
+            type: "POST",
+            url: url,
+            data: { SerialNo: SerialNo, WIP: WIPRecord, CompletedRecord: Delete, recallBodyStatus: "WAX Out", serialNoList: SerialNoList },
+            traditional: true,
+            success: function (data) {
+                $("#myModal_MarkingData").modal("hide");
+                $("#Serial_Number").val("");
+                $("#Serial_Number").focus();
+
+                if (WIPRecord)
+                    GetData();
+                if (Delete)
+                    GetCompletedData();
+
+                if (data.Result == true) {
+                    $('#testy').toastee({
+                        type: 'success',
+                        width: '500px',
+                        height: '100px',
+                        message: data.Msg,
+                    });
+                }
+                else {
+                    $('#testy').toastee({
+                        type: 'error',
+                        width: '500px',
+                        height: '100px',
+                        message: data.Msg,
+                    });
+                }
+            }
+        });
+
+
+
+
+
+
+
+    }
+
+    function ClearTextBox() {
+        $('#SH_Number').val('');
+        $('#Barcode').val('');
+        $('#spanShopId').val('');
+        $('#spanBarcode').val('');
+        $('#spanSHNumber').val('');
+        $('#spanSerialNo').val('');
+        $('#Carrier_No').val('');
+
+    }
+
+    function GetCompletedData(serialNo) {
+        $('#7balls').show();
+
+        var url = "/TrimIn/GetCompletedData";
+        $.getJSON(url, { Serial_No: serialNo }, function (data) {
+            var res = "";
+            $("#Serial_Number1").show();
+            $("#Serial_Number").hide();
+            $("#recall").show();
+            $("#no_vin").hide();
+            $('#7balls').hide();
+
+
+            for (var i = 0; i < data.Result.length; i++) {
+
+
+                res += '';
+                res += '  <tr  style="color:black" style="font-size:16px;border:1px solid black" data-serialno=' + data.Result[i].BodySrNo + '>';
+                res += '      <td  onclick="UncheckAllCheckBox(this)" class="selcheckbox" style  = "font-size:15px; border:1px solid black;padding:3px; width:5%!important;display:none;">';
+                res += '<input type="checkbox" id="chkSelect" class="chkSelect" style="width: 2rem !important;height: 1.5rem;"/>'
+                res += '       </td>';
+                res += '      <td ondblclick="SetSerialNo(' + "'" + data.Result[i].BodySrNo + "'" + ')"  style  = "font-size:15px; border:1px solid black;padding:3px ">';
+                res += '           ' + data.Result[i].DSN;
+                res += '       </td>';
+                res += '      <td ondblclick="SetSerialNo(' + "'" + data.Result[i].BodySrNo + "'" + ')"  style  = "font-size:15px; border:1px solid black;padding:3px ">';
+                res += '           ' + data.Result[i].BodySrNo;
+                res += '       </td>';
+                res += '      <td  style  = "font-size:15px; border:1px solid black;padding:3px;white-space: nowrap; overflow: hidden;text - overflow: ellipsis;">';
+                res += '           ' + data.Result[i].Paint_Shop;
+                res += '       </td>';
+
+                res += '      <td title="' + data.Result[i].Model_Description + '" style  = "font-size:15px; border:1px solid black;padding:3px;white-space: nowrap;width: 50px;overflow: hidden;text - overflow: ellipsis;text-align:left">';
+                res += '           ' + data.Result[i].Model_Description;
+                res += '       </td>';
+                res += '      <td ondblclick="SetSerialNo(' + "'" + data.Result[i].BodySrNo + "'" + ')"  style  = "font-size:15px; border:1px solid black;padding:3px ">';
+                res += '           ' + data.Result[i].IPMS_SRNO;
+                res += '       </td>';
+                res += '      <td  style  = "font-size:15px; border:1px solid black;padding:3px ">';
+                res += '           ' + data.Result[i].Color;
+                res += '       </td>';
+                res += '      <td  style  = "font-size:15px; border:1px solid black;padding:3px;white-space: nowrap; overflow: hidden;text - overflow: ellipsis;">';
+                res += '           ' + data.Result[i].Carrier_No == null ? "" : data.Result[i].Carrier_No;
+                res += '       </td>';
+                res += '      <td data-order="' + data.Result[i].UpdatedDateTimee + '"  style  = "font-size:15px; border:1px solid black;padding:3px ">';
+                res += '           ' + data.Result[i].Date;
+                res += '       </td>';
+
+
+                res += '    </tr>';
+
+            }
+
+            $("#lblCompletedCount").html(data.Result.length);
+            $("#lblTotalCount").html(data.WIPCount);
+
+            $("#lblLastBin").html(data.Result1);
+            //$(' th:nth-child(4)').show();
+            //$(' th:nth-child(5)').show();
+            //$(' th:nth-child(6)').show();
+
+            $("#wip_completed > tbody").html("");
+            ClearDataTable();
+            $("#wip_completed > tbody").append(res);
+
+
+            //$('th:nth-child(9)').hide();
+            //$('td:nth-child(9)').hide();
+
+
+            //if (showCarrier == false) {
+            $('#wip_completed th:nth-child(6)').show();
+            $('#wip_completed td:nth-child(6)').show();
+
+
+            $('#wip_completed th:nth-child(4)').show();
+            $('#wip_completed td:nth-child(4)').show();
+            //}
+
+            //$('th:nth-child(11)').hide();
+            //$('td:nth-child(11)').hide();
+            //$('th:nth-child(10)').hide();
+            //$('td:nth-child(10)').hide();
+
+            //if (showBarCode == false) {
+
+            //$('th:nth-child(12)').hide();
+            //$('td:nth-child(12)').hide();
+            //}
+            //if (showPaintShop == false) {
+            //$('th:nth-child(13)').hide();
+            //$('td:nth-child(13)').hide();
+            //}
+
+            SetJQDataTable();
+            $('#MonthcodeChangeDiv').hide();
+            ClearTextBox();
+            if (serialNo != '' && serialNo != undefined) {
+                if (data.Result.length > 0) {
+                    $('#Serial_Number').val(data.Result[0].BodySrNo);
+                    //var carNo = (data.Result[0].Carrier_No);
+                    //$("#Carrier_No").val(carNo);
+
+                }
+            }
+            First_Serial_Number = data.Result[0].BodySrNo;
+
+        }).fail(function (jqXHR, textStatus, errorThrown) {
+            //location.reload();
+        });
+        GetShiftWiseStationWiseCount();
+    }
+
+    function CheckFirstCheckBox() {
+        $(table.$('input[type="checkbox"]').map(function () {
+            $(this).prop("checked", false);
+        }));
+        debugger;
+        $('#wip_completed tr:has(td)').find('input[type="checkbox"]').each(function () {
+            debugger;
+            $(this).prop("checked", true)
+            if ($("#txtModelDesc").is(":visible")) {
+                $('#txtModelDesc').val($(this).closest('tr').data('modeldesc'));
+            }
+            return false;
+        });
+    }
+
+    function GetShiftWiseStationWiseCount() {
+        debugger;
+        var url = "/TrimIn/GetShiftWiseCount";
+        $.ajax({
+            type: "POST",
+            url: url,
+            traditional: true,
+            success: function (data) {
+                $('#lblShiftWiseCount').html('Shift Count: <span style="font-weight: 900;background-color:blanchedalmond;">' + data.ShiftWiseCount + '</span>');
+
+            }
+        });
+    }
+
+
+
+    //function SearchInTable(elem, e) {
+
+    //    alert();
+    //    // UnSelectAll(elem);
+    //    UncheckAll();
+    //    if (e.key === 'Enter' || e.keyCode === 13) {
+    //        debugger;
+    //        //if ($("#Serial_Number").val() != '' && $("#Serial_Number").val() != undefined) {
+    //        if ($("#Serial_Number").val() != undefined) {
+    //            var wipcompleted = $("#WIP").is(":checked") ? "WIP" : "Completed";
+    //            if (wipcompleted == "WIP") {
+    //                GetData($('#Serial_Number').val());
+
+    //                $('#Serial_Number').focus();
+    //            }
+    //            else {
+    //                GetCompletedData($('#Serial_Number').val());
+    //            }
+    //        }
+    //    }
+    //    else {
+
+
+    //        if (table.rows().data().length > 0) {
+    //            table.search($("#Serial_Number").val()).draw();
+    //            if (table.$('tr', { "filter": "applied" }).length == 1) {
+    //                $(table.$('input[type="checkbox"]').map(function () {
+    //                    $(this).prop("checked", true);
+    //                }));
+    //            }
+    //            if (table.$('tr', { "filter": "applied" }).length > 1) {
+    //                $('#wip_completed tr:has(td)').find('input[type="checkbox"]').each(function () {
+    //                    debugger;
+    //                    //$(this).prop("checked", true)
+    //                    //$('#txtModelDesc').val($(this).closest("tr")[0].dataset['serialno'] + " - " + $(this).closest("tr")[0].dataset['modeldesc']);
+    //                    //UncheckAllCheckBox(this);
+    //                    var $chkbox = $(this).find('input[type="checkbox"]');
+    //                    if ($chkbox.length) {
+    //                        var status = $chkbox.prop('checked');
+    //                        $chkbox.prop('checked', true);
+    //                    }
+    //                    return false;
+    //                });
+    //            });
+    //        }
+
+
+    //    }
+    //}
+
+
+    function No_VIN() {
+
+        var rows = [];
+        rows = $(table.$('input[type="checkbox"]').map(function () {
+            return $(this).prop("checked") ? $(this).closest('tr') : null;
+        }));
+
+        $.each(rows, function (key, value) {
+            serialNo = $(this).data('serialno');
+            modelCode = $(this).data('modelcode');
+            return false;
+        });
+
+
+        if ($('#Serial_Number').val() != serialNo) {
+            alert();
+            $('#testy').toastee({
+                type: 'error',
+                width: '500px',
+                height: '100px',
+                message: 'Wrong Body Scan',
+            });
+            $("#Serial_Number").val("");
+            $("#Serial_Number").focus();
+
+            return;
+        }
+
+        var rows = [];
+        rows = $(table.$('input[type="checkbox"]').map(function () {
+            return $(this).prop("checked") ? $(this).closest('tr') : null;
+        }));
+
+        $.each(rows, function (key, value) {
+            serialNo = $(this).data('serialno');
+            modelCode = $(this).data('modelcode');
+            return false;
+        });
+
+        var srnoCollection = [];
+        $.each(rows, function (key, value) {
+            srnoCollection.push(serialNo);
+            return false;
+        });
+
+
+        $("#spanSerialNo").html("");
+
+        var SerialNo = $("#Serial_Number").val();
+        var WIPRecord = document.getElementById("WIP").checked;
+        var Delete = document.getElementById("CompletedRecord").checked;
+        var shopID = 0;
+
+        if (srnoCollection.length <= 0) {
+            $('#testy').toastee({
+                type: 'info',
+                width: '500px',
+                height: '100px',
+                message: 'No Rows selected.',
+            });
+
+            return;
+        }
+        var url = "/TrimIn/Save_No_VIN_Genrate";
+
+        $.ajax({
+            type: "POST",
+            url: url,
+            data: { SerialNo: "", SerialNoList: srnoCollection, WIP: WIPRecord, CompletedRecord: Delete, Shop_Id: shopID },
+            traditional: true,
+            success: function (data) {
+                $("#myModal_MarkingData").modal("hide");
+                $("#Serial_Number").val("");
+                $("#Serial_Number").focus();
+
+                if (WIPRecord)
+                    GetData();
+                if (Delete)
+                    GetCompletedData();
+
+
+                ClearTextBox();
+
+                if (data.Result == true)
+                {
+                    $('#testy').toastee({
+                        type: 'success',
+                        width: '500px',
+                        height: '100px',
+                        message: data.Msg,
+                    });
+                }
+                else {
+                    $('#testy').toastee({
+                        type: 'error',
+                        width: '500px',
+                        height: '100px',
+                        message: data.Msg,
+                    });
+                }
+            }
+        });
+    }
+
+     //==============================================================FOR SKIP VIN ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+      function myfunction() {
+        debugger;
+        var SerialNo = $("#Serial_Number").val();
+        var vinno = $("#rawvinno").val();
+            $.ajax({
+                url: '@Url.Action("Skipvin", "TrimIn")',
+                type: 'POST',
+                data: { serialNo: SerialNo, vinno: vinno},
+                success: function (response) {
+
+                    if (response.success)
+                    {
+                        debugger;
+                        var vinData = response.vinData;
+                        $('#vin').val(vinData.VinNoWithHash);
+                        $('#rawvinno').val(vinData.VinNo);
+
+                        // Display the Toastr notification
+
+                        // Populate the modal form with data
+                        $('#model-code').val(vinData.ModelCode);
+                        $('#body-sr-no').val(vinData.BodySrNo);
+                        $('#country').val(vinData.Country);
+                        $('#eng-sr-no').val(vinData.EngineSrNo);
+                        $('#gvm').val(vinData.GVM);
+                        $('#gcm').val(vinData.GCM);
+                        $('#ga-fr').val(vinData.GAFront);
+                        $('#ga-rear').val(vinData.GARear);
+                        $('#model-pd').val(vinData.PD);
+                        $('#regulation').val(vinData.Regulation);
+                        $('#last-two-vin').val(response.secondlastvin);
+                        $('#model-desc').val(vinData.ModelDescription);
+
+                        $('#PlateId').val(vinData.PlateId);
+                        $('#vinwithhash').val(vinData.VinNoWithoutHash);
+                        $('#ModelFor').val(vinData.ModelFor);
+                        $('#Monthcodemsg').val(vinData.DisplayMonthCode);
+                        $('#yearcodemsg').val(vinData.DisplayYearCode);
+
+
+                        //=============================================For Duplicate Vin in Skip Method==========================================================//
+
+                        var isduplicate = response.vinData.duplicatevin;
+
+                        if (isduplicate) {
+                            $('#duplicatevinid').css("display", "flex");
+                            $('#generate_vin').css("display", "None");
+                            $('#skipvin').css("display", "block");
+                        }
+                        else {
+                            $('#duplicatevinid').css("display", "None");
+                            $('#generate_vin').css("display", "block");
+                            $('#skipvin').css("display", "None");
+                        }
+                        //=============================================For Duplicate Vin in Skip Method==========================================================//
+
+
+
+                        //Punching Code Msg in Skip Vin method ==================================================================
+
+
+                        var punchingcodefound = response.vinData.PunchingCodeFound
+
+                        if (!punchingcodefound) {
+                            $('#punchingCodefound').css("display", "flex");
+                        }
+                        else {
+                            $('#punchingCodefound').css("display", "none");
+                        }
+                        //Punching Code Msg in Skip Vin method ==================================================================
+
+
+
+
+                        document.getElementById('Monthcodemsg').innerText = vinData.DisplayMonthCode
+                        document.getElementById('yearcodemsg').innerText = vinData.DisplayYearCode
+                        document.getElementById('lastvin').innerText = response.lastvin
+                    }
+                }
+        });
+    }
+     //==============================================================FOR SKIP VIN ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+
+    function vinmodelshow()
+    {
+
+        debugger;
+
+        var rows = [];
+        rows = $(table.$('input[type="checkbox"]').map(function () {
+            return $(this).prop("checked") ? $(this).closest('tr') : null;
+        }));
+
+        $.each(rows, function (key, value) {
+            serialNo = $(this).data('serialno');
+            modelCode = $(this).data('modelcode');
+            return false;
+        });
+
+
+        if ($('#Serial_Number').val() != serialNo) {
+            $('#testy').toastee({
+                type: 'error',
+                width: '500px',
+                height: '100px',
+                message: 'Wrong Body Scan',
+            });
+            $("#Serial_Number").val("");
+            $("#Serial_Number").focus();
+
+            return;
+
+        }
+
+        var srnoCollection = [];
+        $.each(rows, function (key, value) {
+            srnoCollection.push(serialNo);
+            return false;
+        });
+        $("#spanSerialNo").html("");
+        var SerialNo = $("#Serial_Number").val();
+        var WIPRecord = document.getElementById("WIP").checked;
+        var Delete = document.getElementById("CompletedRecord").checked;
+        var shopID = 0;
+
+        if (srnoCollection.length <= 0) {
+            $('#testy').toastee({
+                type: 'info',
+                width: '500px',
+                height: '100px',
+                message: 'No Rows selected.',
+            });
+            //$("#myModal_MarkingData").modal("hide");
+            return;
+        }
+
+        $('#editModal').modal('show');
+          $("#editModal").modal({ backdrop: "static", keyboard: false, });
+
+                        $.ajax({
+                        url: '@Url.Action("Getvindatanew", "TrimIn")',
+                        type: 'POST',
+                            data: { serialNo: serialNo },
+                            success: function (response) {
+
+                            
+                            if (response.success)
+                            {
+                                $('#model-code').val("");
+                                $('#body-sr-no').val("");
+                                $('#country').val("");
+                                $('#eng-sr-no').val("");
+                                $('#gvm').val("");
+                                $('#gcm').val("");
+                                $('#ga-fr').val("");
+                                $('#ga-rear').val("");
+                                $('#model-pd').val("");
+                                $('#regulation').val("");
+                                $('#last-two-vin').val("");
+                                $('#model-desc').val("");
+                                $('#vin').val("");
+                                $('#rawvinno').val("");
+                                $('#vinwithhash').val("");
+                                $('#plateId').val("");
+                                $('#ModelFor').val("");
+                                $('#Monthcodemsg').val("");
+                                $('#yearcodemsg').val("");
+
+
+                                var vinData = response.vinData;
+                                // Populate the modal form with data
+                                $('#model-code').val(vinData.ModelCode);
+                                $('#body-sr-no').val(vinData.BodySrNo);
+                                $('#country').val(vinData.Country);
+                                $('#eng-sr-no').val(vinData.EngineSrNo);
+                                $('#gvm').val(vinData.GVM);
+                                $('#gcm').val(vinData.GCM);
+                                $('#ga-fr').val(vinData.GAFront);
+                                $('#ga-rear').val(vinData.GARear);
+                                $('#model-pd').val(vinData.PD);
+                                $('#regulation').val(vinData.Regulation);
+                                $('#last-two-vin').val(response.secondlastvin);
+                                $('#model-desc').val(vinData.ModelDescription);
+                                $('#vin').val(vinData.VinNoWithHash);
+                                $('#rawvinno').val(vinData.VinNo);
+                                $('#vinwithhash').val(vinData.VinNoWithoutHash);
+                                $('#plateId').val(vinData.PlateId);
+                                $('#ModelFor').val(vinData.ModelFor);
+                                $('#Monthcodemsg').val(vinData.DisplayMonthCode);
+                                $('#yearcodemsg').val(vinData.DisplayYearCode);
+
+
+                                var isduplicate = response.vinData.duplicatevin;
+
+                                if (isduplicate)
+                                {
+                                    $('#duplicatevinid').css("display", "flex");
+                                    $('#generate_vin').css("display", "None");
+                                    $('#skipvin').css("display", "block");
+                                }
+                                var punchingcodefound = response.vinData.PunchingCodeFound
+
+                                if (!punchingcodefound) {
+                                    $('#punchingCodefound').css("display", "flex");
+                                }
+                                else {
+                                    $('#punchingCodefound').css("display", "none");
+                                }
+
+                                document.getElementById('Monthcodemsg').innerText = vinData.DisplayMonthCode
+                                document.getElementById('yearcodemsg').innerText = vinData.DisplayYearCode
+
+                                document.getElementById('lastvin').innerText = response.lastvin
+
+
+                                $('#editModal').modal('show');
+                            }
+                            else if (response.lastvin =="000")
+                            {
+
+                                $('#model-code').val("");
+                                $('#body-sr-no').val("");
+                                $('#country').val("");
+                                $('#eng-sr-no').val("");
+                                $('#gvm').val("");
+                                $('#gcm').val("");
+                                $('#ga-fr').val("");
+                                $('#ga-rear').val("");
+                                $('#model-pd').val("");
+                                $('#regulation').val("");
+                                $('#last-two-vin').val("");
+                                $('#model-desc').val("");
+                                $('#vin').val("");
+                                $('#rawvinno').val("");
+                                $('#vinwithhash').val("");
+                                $('#plateId').val("");
+                                $('#ModelFor').val("");
+                                $('#Monthcodemsg').val("");
+                                $('#yearcodemsg').val("");
+
+
+                                $('#editModal').modal('hide');
+                                $('#testy').toastee({
+                                    type: 'error',
+                                    width: '500px',
+                                    height: '100px',
+                                    message: response.errorMessage,
+                                });
+
+                            }
+                            else
+                            {     
+                                $('#model-code').val("");
+                                $('#body-sr-no').val("");
+                                $('#country').val("");
+                                $('#eng-sr-no').val("");
+                                $('#gvm').val("");
+                                $('#gcm').val("");
+                                $('#ga-fr').val("");
+                                $('#ga-rear').val("");
+                                $('#model-pd').val("");
+                                $('#regulation').val("");
+                                $('#last-two-vin').val("");
+                                $('#model-desc').val("");
+                                $('#vin').val("");
+                                $('#rawvinno').val("");
+                                $('#vinwithhash').val("");
+                                $('#plateId').val("");
+                                $('#ModelFor').val("");
+                                $('#Monthcodemsg').val("");
+                                $('#yearcodemsg').val("");
+
+                                console.error('Error:', response.errorMessage);
+                            }
+                        },
+                        error: function (xhr, status, error) {
+                            console.error('Error in first AJAX call:', xhr.responseText);
+                        }
+                    });
+
+
+    }
+
+
+    $('#generate_vin').off('click').on('click', function ()
+    {
+        debugger;
+        var formData = $('#vinmodelform').serializeArray();
+        var WIPRecord = document.getElementById("WIP").checked;
+        var Delete = document.getElementById("CompletedRecord").checked;
+        var shopID = 0;
+
+        $('#7balls').show();
+
+        var rows = [];
+        rows = $(table.$('input[type="checkbox"]').map(function () {
+            return $(this).prop("checked") ? $(this).closest('tr') : null;
+        }));
+
+        $.each(rows, function (key, value) {
+            serialNo = $(this).data('serialno');
+            modelCode = $(this).data('modelcode');
+            return false;
+        });
+
+        var srnoCollection = [];
+        $.each(rows, function (key, value) {
+            srnoCollection.push(serialNo);
+            return false;
+        });
+
+
+
+        var formDataObject = {};
+        $.each(formData, function (index, field) {
+            formDataObject[field.name] = field.value;
+        });
+
+
+        var additionalData = {
+            SerialNo: "",
+            SerialNoList: srnoCollection,
+            WIP: WIPRecord,
+            CompletedRecord: Delete,
+            Shop_Id: shopID
+        };
+
+        var mergedData = $.extend({}, formDataObject, additionalData);
+
+       
+        var url = "/TrimIn/SaveData";
+        $.ajax({
+            url: url,
+            type: 'POST',
+            data: mergedData,
+            success: function (secondResponse) {
+                $('#7balls').hide();
+                $('#editModal').modal('hide');
+                if (secondResponse.Result) {
+                    $("#myModal_MarkingData").modal("hide");
+                    $("#Serial_Number").val("");
+                    $("#Serial_Number").focus();
+                    if (WIPRecord)
+                        GetData();
+                    if (Delete)
+                        GetCompletedData();
+                    ClearTextBox();
+                    if (secondResponse.Result == true)
+                    {
+
+                        $('#model-code').val("");
+                        $('#body-sr-no').val("");
+                        $('#country').val("");
+                        $('#eng-sr-no').val("");
+                        $('#gvm').val("");
+                        $('#gcm').val("");
+                        $('#ga-fr').val("");
+                        $('#ga-rear').val("");
+                        $('#model-pd').val("");
+                        $('#regulation').val("");
+                        $('#last-two-vin').val("");
+                        $('#model-desc').val("");
+                        $('#vin').val("");
+                        $('#rawvinno').val("");
+                        $('#vinwithhash').val("");
+                        $('#plateId').val("");
+                        $('#ModelFor').val("");
+                        $('#Monthcodemsg').val("");
+                        $('#yearcodemsg').val("");
+
+
+                        $('#testy').toastee({
+                            type: 'success',
+                            width: '500px',
+                            height: '100px',
+                            message: secondResponse.Msg,
+                        });
+
+                        $("#myModal_MarkingData").modal("hide");
+                        $("#Serial_Number").val("");
+                        $("#Serial_Number").focus();
+                        if (WIPRecord)
+                            GetData();
+                        if (Delete)
+                            GetCompletedData();
+                    }
+                    else if (secondResponse.Result == false)
+                    {
+                        $('#testy').toastee({
+                            type: 'success',
+                            width: '500px',
+                            height: '100px',
+                            message: secondResponse.Msg,
+                        });
+                        
+                    }
+
+
+
+                } else {
+                    $('#testy').toastee({
+                        type: 'error',
+                        width: '500px',
+                        height: '100px',
+                        message: secondResponse.Msg,
+                    });
+                }
+            },
+            error: function (xhr, status, error) {
+                alert("Error Occured while Rendering");
+            }
+        });
+    });
+
+
+
+
+
+</script>
+
+
+
