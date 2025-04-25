@@ -1,8 +1,16 @@
-  var bwtList = db.MM_BWT.Select(c => new SelectListItem
+ 
+            var bwtList = db.MM_BWT.Select(c => new SelectListItem
             {
                 Value = c.BWT_ID.ToString(),
                 Text  = c.BWT_Name
-            }); 
+            }).ToList();
+
+
+            bwtList.Insert(0, new SelectListItem
+            {
+                Value = "0",
+                Text = "All"
+            });
 
 
 -----------------------------------------------------------------------------
