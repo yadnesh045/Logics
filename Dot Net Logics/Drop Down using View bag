@@ -1,0 +1,12 @@
+  var bwtList = db.MM_BWT.Select(c => new SelectListItem
+            {
+                Value = c.BWT_ID.ToString(),
+                Text  = c.BWT_Name
+            }); 
+
+
+-----------------------------------------------------------------------------
+
+    <div class="col-sm-3">
+                    @Html.DropDownList("Line_ID", (IEnumerable<SelectListItem>)ViewBag.Linelist, "Select Line")
+                </div>
