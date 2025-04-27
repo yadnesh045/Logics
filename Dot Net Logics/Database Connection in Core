@@ -1,0 +1,25 @@
+--1.Connection String in AppSettings Json
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=localhost;Database=YourDatabaseName;User Id=yourUsername;Password=yourPassword;MultipleActiveResultSets=True;"
+  }
+
+
+--2 Database Connection Class
+using Microsoft.EntityFrameworkCore;
+using Middleware.Models;
+namespace Middleware
+{
+    public class Databasecont : DbContext
+    {
+        public Databasecont(DbContextOptions<Databasecont> options) : base(options)
+        {
+        }
+        public DbSet<Testmiddle> Testmiddles { get; set; }
+    }
+}
+
+--3 Register Class in Program.cs 
+
+builder.Services.AddDbContext<Databasecont>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
