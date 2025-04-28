@@ -1,0 +1,24 @@
+DECLARE @row_num INT;
+
+DECLARE InsertCursor CURSOR LOCAL FOR 
+WITH cte AS (
+    SELECT 1 AS cc
+    UNION ALL
+    SELECT cc + 1 FROM cte 
+    WHERE cc < 10
+)
+SELECT cc FROM cte;
+
+OPEN InsertCursor;
+
+FETCH NEXT FROM InsertCursor INTO @row_num;
+
+WHILE @@FETCH_STATUS = 0 
+BEGIN  
+    SELECT @row_num * 10 As No;
+    FETCH NEXT FROM InsertCursor INTO @row_num; 
+END
+
+CLOSE InsertCursor;
+
+DEALLOCATE InsertCursor;
