@@ -1,0 +1,49 @@
+ <div class="col-sm-3">
+                    <label>Line:</label>
+                    <select id="StateId" name="StateId" class="form-control">
+                        <option value="">-- Select Line --</option>
+                    </select>
+                </div>
+
+
+js: 
+
+  $("#Shop").on("change", function () {
+            $("#Line_ID").html("");
+            var Shop_ID = $('#Shop').val();
+            if (Shop_ID.length > 0) {
+
+                 $.ajax({
+                       url: '@Url.Action("GetLineByShopID", "Report")',
+                       type: 'GET',
+                     data: { shopid: Shop_ID },
+                     success: function (data) {
+
+                           $.each(data, function (i, state) {
+                               $('#StateId').append($('<option></option>').val(state.Id).html(state.Value));
+                           });
+                       }
+                }); 
+
+
+Dot net : 
+
+   public ActionResult GetLineByShopID(int shopId)
+        {
+            try
+            {
+                var st = from line in db.MM_Lines
+                         where line.Shop_ID == shopId
+                         orderby line.Line_Name
+                         select new
+                         {
+                             Id = line.Line_ID,
+                             Value = line.Line_Name,
+                         };
+                return Json(st, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(null, JsonRequestBehavior.AllowGet);
+            }
+        }
