@@ -1,0 +1,113 @@
+---------------------------------------------------------------------------------------------PROGRAM.CS------------------------------------------------------------------------------------------------------
+using Hiraj_API.Data;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+
+var builder = WebApplication.CreateBuilder(args);
+
+// Add services to the container.
+
+builder.Services.AddControllers();
+// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+builder.Services.AddDbContext<ApplicationDBConnect>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+var jwtSettings = builder.Configuration.GetSection("Jwt");
+var key = Encoding.UTF8.GetBytes(jwtSettings["Key"]);
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = jwtSettings["Issuer"],
+        ValidAudience = jwtSettings["Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(key)
+    };
+});
+builder.Services.AddAuthorization();
+
+
+
+var app = builder.Build();
+
+// Configure the HTTP request pipeline.
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+
+app.UseHttpsRedirection();
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.MapControllers();
+
+app.Run();
+
+
+----------------------------------------------------------------------------------------------------APPLICATION.JSON------------------------------------------------------------------------------------------
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  },
+  "AllowedHosts": "*",
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=.; Database = HirajFoods; Trusted_Connection = True;TrustServerCertificate=True"
+  },
+
+  "Jwt": {
+    "Key": "MyUltraStrongJwtSecretKey_2025!!##",
+    "Issuer": "http://localhost:7050",
+    "Audience": "http://localhost:7050"
+  }
+  
+
+}
+
+----------------------------------------------------------------------------------------------------LOGIN METHOD------------------------------------------------------------------------------------------
+    [HttpPost("login")]
+    public IActionResult Login(LoginDto loginDto)
+    {
+        var user = db.Users.FirstOrDefault(u => u.FirstName == loginDto.Username);
+        if (user == null || user.Password != loginDto.Password)
+        {
+            return Unauthorized("Invalid credentials");
+        }
+
+        var claims = new[]
+        {
+    new Claim(ClaimTypes.Name, user.FirstName),
+    new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
+};
+
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("MyUltraStrongJwtSecretKey_2025!!##"));
+        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+        var token = new JwtSecurityToken(
+            issuer: "http://localhost:7050",
+            audience: "http://localhost:7050",
+            claims: claims,
+            expires: DateTime.UtcNow.AddHours(1),
+            signingCredentials: creds
+        );
+
+        var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
+
+        return Ok(new { token = tokenString });
+    }
