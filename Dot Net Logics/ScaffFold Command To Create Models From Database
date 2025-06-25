@@ -1,0 +1,1 @@
+Scaffold-DbContext "Server=.;Database=HirajFoods;Trusted_Connection=True;TrustServerCertificate=True" Microsoft.EntityFrameworkCore.SqlServer -OutputDir Models -Context ApplicationDbContext -Force
