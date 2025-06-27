@@ -1,0 +1,42 @@
+{
+  "AppSettings": {
+    "ExportCountryCode": "01,06,07,08,11",
+    "ExportCountryCodeForExportVinNumberStation": "1190,1221,1222,1248,1258,1",
+    "webpages:Version": "3.0.0.0",
+    "webpages:Enabled": "false",
+    "ClientValidationEnabled": "true",
+    "UnobtrusiveJavaScriptEnabled": "true",
+    "ReportUrl": "",
+    "IsCallToIoT": "true",
+    "LastAutoEntryStatusID": "13",
+    "StationID": "0",
+    "tokenno": "mahindra\\50011021",
+    "DBCommandTimeout": "300"
+  },
+  "IoT": {
+    "Default": {
+      "ReadURL": "http://10.3.48.24:39325/iotgateway/read",
+      "WriteURL": "http://10.3.48.24:39325/iotgateway/write",
+      "BrowseURL": "http://10.3.48.24:39325/iotgateway/browse"
+    },
+    "MM": {
+      "ReadURL": "http://190.4.70.27:39320/iotgateway/read",
+      "WriteURL": "http://190.4.70.27:39320/iotgateway/write",
+      "BrowseURL": "http://190.4.70.27:39320/iotgateway/browse"
+    },
+    "MTWDVehicle": {
+      "ReadURL": "http://10.6.28.180:39330/iotgateway/read",
+      "WriteURL": "http://10.6.28.180:39330/iotgateway/write",
+      "BrowseURL": "http://10.6.28.180:39330/iotgateway/browse"
+    },
+    "CSCPOKAYOKE": {
+      "PLC_URL_read": "http://190.4.70.27:39320/iotgateway/read?ids=CSC_TRIAL.Device1.CSC_Door",
+      "PLC_1_URL_read": "http://190.4.70.27:39320/iotgateway/read?ids=STCF CSC.MICRO_1400_1.CSC_Tightning"
+    }
+  },
+  "ConnectionStrings": {
+    "ADONET": "Server=10.6.28.186;Database=DRONAA_MTWD_TEST_PRODUCTION;User ID=DRONAADMIN;Password=Drona$789@#;Integrated Security=False;",
+    "AD": "Data Source=10.6.28.186;Initial Catalog=DRONAA_MTWD_TEST_PRODUCTION;User ID=DRONAADMIN;Password=Drona$789@#;Integrated Security=False;User Instance=False",
+    "DRONAA_MTWDEntities": "metadata=res://*/Models.DronaAD_MTWD_Model.csdl|res://*/Models.DronaAD_MTWD_Model.ssdl|res://*/Models.DronaAD_MTWD_Model.msl;provider=System.Data.SqlClient;provider connection string=\"data source=10.6.28.186;initial catalog=DRONAA_MTWD_TEST_PRODUCTION;persist security info=True;user id=DRONAADMIN;password=Drona$789@#;MultipleActiveResultSets=True;App=EntityFramework\""
+  }
+}
