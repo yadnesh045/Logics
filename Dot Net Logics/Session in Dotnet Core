@@ -1,0 +1,47 @@
+//===================================================================================================
+
+//Program.Cs Session Add 
+
+var builder = WebApplication.CreateBuilder(args);
+
+// Add session services
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30); // optional
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
+
+var app = builder.Build();
+
+// Use session middleware
+app.UseSession();
+
+//==================================================================================================
+
+//For simple values (string, int):
+// Store
+HttpContext.Session.SetString("FDSession_UserName", "MahindraUser");
+HttpContext.Session.SetInt32("FDSession_UserId", 101);
+
+// Retrieve
+string userName = HttpContext.Session.GetString("FDSession_UserName");
+int? userId = HttpContext.Session.GetInt32("FDSession_UserId");
+
+//==================================================================================================
+
+// For complex objects (like fdSessionObj)
+
+// Serialize and store
+var fdSessionObj = new FDSession { UserId = 101, UserName = "MahindraUser" };
+string json = JsonSerializer.Serialize(fdSessionObj);
+HttpContext.Session.SetString("FDSession", json);
+
+// Retrieve and deserialize
+string? jsonStr = HttpContext.Session.GetString("FDSession");
+if (jsonStr != null)
+{
+    var sessionObj = JsonSerializer.Deserialize<FDSession>(jsonStr);
+}
+
