@@ -1,1 +1,1 @@
-Scaffold-DbContext "Server=.;Database=HirajFoods;Trusted_Connection=True;TrustServerCertificate=True" Microsoft.EntityFrameworkCore.SqlServer -OutputDir Models -Context ApplicationDbContext -Force
+Scaffold-DbContext "Server=10.6.28.186,1433;Database=DRONAA_MTWD_Paint_LIVE;User Id=Dronaadmin;Password=Drona`$789@#;Encrypt=False;TrustServerCertificate=True;" Microsoft.EntityFrameworkCore.SqlServer -OutputDir Models -Context ApplicationDbContext -Force -UseDatabaseNames
