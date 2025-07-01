@@ -1,0 +1,14 @@
+ 
+ //Using Query in Entity Frame Work 
+ 
+ 
+ String query = "select * from MM_OM_Planned_Orders where shop_id=" + shopID + " and Line_ID=" + lineID + " and  Planned_Date=CONVERT(DATE, GETDATE()) order by order_id";
+ var plan_order = db.MM_OM_Planned_Orders.FromSqlRaw(query).ToList();
+ 
+ 
+//Using Sp in Entity Frame Work 
+ 
+ 
+ var result = _context.MM_OM_Planned_Orders
+    .FromSqlInterpolated($"EXEC GetPlannedOrders @shopId = {shopId}, @lineId = {lineId}")
+    .ToList();
